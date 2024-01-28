@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <div class="login-container">
+        <h2>Register</h2>
+        <!-- action is to specify the route to handle the form logic -->
+        <form method="POST" action="{{ url_for('register_page') }}">
+            {{ form.hidden_tag() }}
+            <div class="form-group">
+                {{ form.username.label() }}
+                {{ form.username() }}
+            </div>
+            <div class="form-group">
+                {{ form.email_address.label() }}
+                {{ form.email_address() }}
+            </div>
+            <div class="form-group">
+                {{ form.password.label() }}
+                {{ form.password() }}
+            </div>
+            <div class="form-group">
+                {{ form.confirm_password.label() }}
+                {{ form.confirm_password() }}
+            </div>
+            <button type="submit" class="btn">Sign up</button>
+        </form>
+    </div>
+</body>
+</html>

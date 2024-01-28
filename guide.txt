@@ -1,0 +1,13 @@
+Installation of database and guide
+https://sqlitebrowser.org/dl/
+https://docs.sqlalchemy.org/en/20/intro.html#installation
+
+flask installation guide
+https://flask.palletsprojects.com/en/3.0.x/installation/
+
+flask form -> pip install -wtf
+                pip install -wtforms
+
+flask encryption -> pip install flask_bcrypt
+
+run program -> python run.py
