@@ -11,3 +11,5 @@ flask form -> pip install -wtf
 flask encryption -> pip install flask_bcrypt
 
 run program -> python run.py
+
+sf
