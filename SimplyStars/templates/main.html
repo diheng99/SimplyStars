@@ -8,7 +8,7 @@
 <body>
     <div class="login-container">
         <h2>Add your course</h2>
-        <form method="POST">
+        <form id="courseForm" method="POST">
             {{ form.hidden_tag() }}
             <div class="form-group">
                 <!-- renders the label and input field -->
@@ -19,6 +19,40 @@
                 {{ form.add() }}
             </div>
         </form>
+    </div>
+
+    <!-- AJAX is asynch JS and XML, used it to intercept form submission -->
+    <script type="text/javascript">
+        <!-- Ready is a function to only run the code after form is submitted -->
+        $(document).ready(function() {
+            $('#courseForm').on('submit', function(e) {
+                e.preventDefault();  
+    
+                $.ajax({
+                    url: 'main_page',  
+                    type: 'POST',
+                    data: $(this).serialize(),
+                    success: function(response) {
+                        if(response.status === 'success') {
+                            $('ul').append('<li>' + response.new_course + '</li>');
+                            $('#courseForm input[name="course_code"]').val('');
+                        }
+                    },
+                    error: function(error) {
+                        console.log(error);
+                    }
+                });
+            });
+        });
+    </script>
+
+    <div class="Course List">
+        <h2>Your Courses</h2>
+        <ul>
+            {% for course in user_courses %}
+            <li>{{ course.course_code }}</li>
+            {% endfor %}
+        </ul>
     </div>
 </body>
 </html>

@@ -8,6 +8,17 @@ from SimplyStars.forms import LoginForm, RegisterForm, CourseCodeForm
 from SimplyStars.models import User, db, CourseCode
 from flask_login import login_user, current_user
 
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.chrome.options import Options
+from webdriver_manager.chrome import ChromeDriverManager
+from selenium import webdriver
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.by import By
+
+from bs4 import BeautifulSoup
+
+
 @app.route('/')
 @app.route('/home', methods=['GET'])
 def home_page():
@@ -51,5 +62,7 @@ def main_page():
         course_code=CourseCode(course_code=form.course_code.data, user=current_user.id)
         db.session.add(course_code)
         db.session.commit()
-
-    return render_template('main.html', form=form)
+            
+    user_courses = CourseCode.query.filter_by(user=current_user.id).all()
+    
+    return render_template('main.html', form=form, user_courses=user_courses)

@@ -28,5 +28,6 @@ class RegisterForm(FlaskForm):
     ## Email() is a builtin validator so it will search for a method name validate_email_address
     
 class CourseCodeForm(FlaskForm):
-    course_code = StringField(label="Enter Course Code")
+      
+    course_code = StringField(label="Enter Course Code", validators=[DataRequired()])
     add = SubmitField("Add")
