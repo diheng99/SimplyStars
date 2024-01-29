@@ -1,10 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <title>Document</title>
 </head>
+
 <body>
     <div class="login-container">
         <h2>Add your course</h2>
@@ -24,21 +27,21 @@
     <!-- AJAX is asynch JS and XML, used it to intercept form submission -->
     <script type="text/javascript">
         <!-- Ready is a function to only run the code after form is submitted -->
-        $(document).ready(function() {
-            $('#courseForm').on('submit', function(e) {
-                e.preventDefault();  
-    
+        $(document).ready(function () {
+            $('#courseForm').on('submit', function (e) {
+                e.preventDefault();
+
                 $.ajax({
-                    url: 'main_page',  
+                    url: 'main',
                     type: 'POST',
                     data: $(this).serialize(),
-                    success: function(response) {
-                        if(response.status === 'success') {
+                    success: function (response) {
+                        if (response.status === 'success') {
                             $('ul').append('<li>' + response.new_course + '</li>');
                             $('#courseForm input[name="course_code"]').val('');
                         }
                     },
-                    error: function(error) {
+                    error: function (error) {
                         console.log(error);
                     }
                 });
@@ -54,5 +57,13 @@
             {% endfor %}
         </ul>
     </div>
+
+    {% if scraped_html %}
+    <div class="scraped-content">
+        {{ scraped_html|safe }}
+    </div>
+    {% endif %}
+
 </body>
+
 </html>
