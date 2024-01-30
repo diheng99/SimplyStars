@@ -2,13 +2,11 @@
 # POST method is used to send data to server to create/update a resource
 # Login form requires the GET forms from server and POST for users to submit forms
 
-from markupsafe import Markup
 import requests
-from bs4 import BeautifulSoup
 from SimplyStars import app
-from flask import render_template, redirect, url_for
+from flask import render_template, redirect, request, url_for, jsonify
 from SimplyStars.forms import LoginForm, RegisterForm, CourseCodeForm
-from SimplyStars.models import User, db, CourseCode
+from SimplyStars.models import User, db, CourseCode, CourseSchedule
 from flask_login import login_user, current_user
 
 @app.route('/')
@@ -77,3 +75,19 @@ def main_page():
     user_courses = CourseCode.query.filter_by(user=current_user.id).all()
     
     return render_template('main.html', form=form, user_courses=user_courses, scraped_html=scraped_html)
+
+@app.route('/add_course_schedule', methods=['POST'])
+def add_course_schedule():
+    print(request.headers)
+    try:
+        data = request.json
+
+        course_schedule = CourseSchedule(course_code=data['course_code'], user=2, html_content=data['html_content'])
+
+        db.session.add(course_schedule)  # Fixed typo here
+        db.session.commit()
+        return jsonify({"message": "Course schedule added successfully"}), 200
+
+    except Exception as e:
+        return jsonify({"Error": str(e)}), 500
+    

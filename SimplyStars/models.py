@@ -29,3 +29,10 @@ class CourseCode(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     course_code = db.Column(db.String(100), nullable=False)
     user = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+
+class CourseSchedule(db.Model):
+    __tablename__ = 'course_schedule'
+    id = db.Column(db.Integer, primary_key=True)
+    course_code = db.Column(db.String(100), nullable=False)
+    user = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    html_content = db.Column(db.Text, nullable=True)
