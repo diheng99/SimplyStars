@@ -4,7 +4,7 @@
 
 import requests
 from SimplyStars import app
-from flask import render_template, redirect, request, url_for, jsonify
+from flask import render_template, redirect, request, url_for, jsonify, flash
 from SimplyStars.forms import LoginForm, RegisterForm, CourseCodeForm
 from SimplyStars.models import User, db, CourseCode, CourseSchedule
 from flask_login import login_user, current_user
@@ -24,6 +24,8 @@ def login_page():
             login_user(user) # calls the load_user method and store the user'id session
             
             return redirect(url_for('main_page'))
+        else:
+            return jsonify({'success':False, 'error': 'Invalid username or password'})
     
     return render_template('login.html', form = form)
 
@@ -47,42 +49,47 @@ def register_page():
 @app.route('/main', methods=['GET', 'POST'])
 def main_page():
     form = CourseCodeForm()
-    scraped_html = None
     if form.validate_on_submit():
-        # Create an instance of coursecode not coursecode form
-        course_code=CourseCode(course_code=form.course_code.data, user=current_user.id)
-        db.session.add(course_code)
-        db.session.commit()
-
-        php_endpoint = "http://127.0.0.1:80/course_schedule.php"
-        payload = {
-            'course_code': form.course_code.data
-        }
         
-        response = requests.post(php_endpoint, data=payload)
-        
-        if response.status_code == 200:
-            if "OK" in response.text:
-                # The PHP script executed successfully and presumably created the file
-                print("PHP script executed successfully.")
-            else:
-                # The PHP script did not return "OK", so there may have been an issue
-                print("PHP script did not execute as expected. Response:", response.text)
+        exists_course = CourseCode.query.filter_by(course_code=form.course_code.data,
+                                                   user=current_user.id).first()
+        if exists_course:
+            return jsonify({'status': 'error', 'message': 'Course already added'})
         else:
-            print("Failed to make a request to the PHP script. Status Code:", response.status_code)
+            # Create an instance of coursecode not coursecode form
+            course_code=CourseCode(course_code=form.course_code.data, user=current_user.id)
+            db.session.add(course_code)
+            db.session.commit()
+
+            php_endpoint = "http://127.0.0.1:80/course_schedule.php"
+            payload = {
+                'course_code': form.course_code.data,
+                'user_id' : current_user.id
+            }
         
+            response = requests.post(php_endpoint, data=payload)
+        
+            if response.status_code == 200:
+                if "OK" in response.text:
+                    # The PHP script executed successfully and presumably created the file
+                    print("PHP script executed successfully.")
+                else:
+                    # The PHP script did not return "OK", so there may have been an issue
+                    print("PHP script did not execute as expected. Response:", response.text)
+            else:
+                print("Failed to make a request to the PHP script. Status Code:", response.status_code)
+        
+            return jsonify({'status': 'success', 'new_course': course_code.course_code})
         
     user_courses = CourseCode.query.filter_by(user=current_user.id).all()
-    
-    return render_template('main.html', form=form, user_courses=user_courses, scraped_html=scraped_html)
+    return render_template('main.html', form=form, user_courses=user_courses)
 
 @app.route('/add_course_schedule', methods=['POST'])
 def add_course_schedule():
     print(request.headers)
     try:
         data = request.json
-
-        course_schedule = CourseSchedule(course_code=data['course_code'], user=2, html_content=data['html_content'])
+        course_schedule = CourseSchedule(course_code=data['course_code'], user=data['user_id'], html_content=data['html_content'])
 
         db.session.add(course_schedule)  # Fixed typo here
         db.session.commit()

@@ -4,11 +4,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <title>Document</title>
 </head>
 
 <body>
+
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <div class="login-container">
         <h2>Add your course</h2>
         <form id="courseForm" method="POST">
@@ -36,6 +39,9 @@
                     type: 'POST',
                     data: $(this).serialize(),
                     success: function (response) {
+                        if (response.status === 'error') {
+                            showModal(response.message);
+                        }
                         if (response.status === 'success') {
                             $('ul').append('<li>' + response.new_course + '</li>');
                             $('#courseForm input[name="course_code"]').val('');
@@ -47,6 +53,12 @@
                 });
             });
         });
+
+        function showModal(message) {
+            $('#modalMessage').text(message);
+            $('#errorModal').modal();  // Initialize the modal
+            $('#errorModal').modal('show');  // Show the modal
+        }
     </script>
 
     <div class="Course List">
@@ -58,11 +70,26 @@
         </ul>
     </div>
 
-    {% if scraped_html %}
-    <div class="scraped-content">
-        {{ scraped_html|safe }}
+    <!-- Error Modal -->
+    <div class="modal" id="errorModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Error</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p id="modalMessage"></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
     </div>
-    {% endif %}
+
 
 </body>
 
