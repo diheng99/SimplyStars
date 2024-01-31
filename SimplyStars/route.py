@@ -8,6 +8,8 @@ from flask import render_template, redirect, request, url_for, jsonify, flash
 from SimplyStars.forms import LoginForm, RegisterForm, CourseCodeForm
 from SimplyStars.models import User, db, CourseCode, CourseSchedule
 from flask_login import login_user, current_user
+from bs4 import BeautifulSoup
+import json
 
 @app.route('/')
 @app.route('/home', methods=['GET'])
@@ -51,8 +53,7 @@ def main_page():
     form = CourseCodeForm()
     if form.validate_on_submit():
         
-        exists_course = CourseCode.query.filter_by(course_code=form.course_code.data,
-                                                   user=current_user.id).first()
+        exists_course = CourseCode.query.filter_by(course_code=form.course_code.data, user=current_user.id).first()
         if exists_course:
             return jsonify({'status': 'error', 'message': 'Course already added'})
         else:
