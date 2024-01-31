@@ -33,6 +33,15 @@ class CourseCode(db.Model):
 class CourseSchedule(db.Model):
     __tablename__ = 'course_schedule'
     id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     course_code = db.Column(db.String(100), nullable=False)
-    user = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    html_content = db.Column(db.Text, nullable=True)
+    course_index = db.Column(db.String(100), nullable=False)
+    type = db.Column(db.String(120))
+    group = db.Column(db.String(120))
+    day = db.Column(db.String(120))
+    time = db.Column(db.String(120))
+    venue = db.Column(db.String(120))
+    remark = db.Column(db.Text)
+
+    
+
