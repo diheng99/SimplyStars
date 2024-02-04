@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css')}}">
 <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
 {% endblock %}
 
@@ -12,23 +13,25 @@ Main
 {% endblock %}
 
 {% block content %}
-    <div class="login-container">
-        <h2>Add your course</h2>
-        <form id="courseForm" method="POST">
-            {{ form.hidden_tag() }}
-            <div class="form-group">
-                <!-- renders the label and input field -->
-                {{ form.course_code.label() }}
-                {{ form.course_code() }}
-            </div>
-            <div class="form-group">
-                {{ form.add() }}
-            </div>
-        </form>
-    </div>
-    
-    <div class="Course List">
+<div class="login-container">
+    <h2>Add your course</h2>
+    <form id="courseForm" method="POST">
+        {{ form.hidden_tag() }}
+        <div class="form-group">
+            <!-- renders the label and input field -->
+            {{ form.course_code.label() }}
+            {{ form.course_code() }}
+        </div>
+        <div class="form-group">
+            {{ form.add() }}
+        </div>
+    </form>
+</div>
+
+<div class="content-container">
+    <div class="course_container">
         <h2>Your Courses</h2>
+        <!-- ul is a HTML element to represent an unordered list, li is list item -->
         <ul>
             {% for course in user_courses %}
             <li>{{ course.course_code }}</li>
@@ -36,59 +39,74 @@ Main
         </ul>
     </div>
 
-    <!-- Error Modal -->
-    <div class="modal" id="errorModal" tabindex="-1" role="dialog">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Error</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <p id="modalMessage"></p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                </div>
-            </div>
+    <div>
+
+        <div class="timetable-container">
+            <table id="timetable">
+                <!-- thead creates the header, tr creates a horiztonal row and th for table header -->
+                <thead>
+                    <tr>
+                        <th>Time</th>
+                        <th>Monday</th>
+                        <th>Tuesday</th>
+                        <th>Wednesday</th>
+                        <th>Thursday</th>
+                        <th>Friday</th>
+                    </tr>
+                </thead>
+                <!-- tbody is used for the main body below the thead. td is used for storing data -->
+                <tbody>
+                    {% for time_slot in schedule %}
+                    <tr>
+                        <td>{{ time_slot }}</td>
+                        <td>{{ monday_schedule_types.get(time_slot, '') }}</td>
+                        <!-- Repeat for other days as needed -->
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                
+                
+            </table>
         </div>
     </div>
-{% endblock %}
 
-{% block scripts %}
-<!-- AJAX is asynch JS and XML, used it to intercept form submission -->
-<script type="text/javascript">
-    <!-- Ready is a function to only run the code after form is submitted -->
-    $(document).ready(function () {
-        $('#courseForm').on('submit', function (e) {
-            e.preventDefault();
+    {% endblock %}
 
-            $.ajax({
-                url: 'main',
-                type: 'POST',
-                data: $(this).serialize(),
-                success: function (response) {
-                    if (response.status === 'error') {
-                        showModal(response.message);
+    {% block scripts %}
+    <script type="text/javascript">
+        // Ready is a function to only run the code after form is submitted
+        $(document).ready(function () {
+            $('#courseForm').on('submit', function (e) { // Listens for a form id courseForm to be submitted
+                e.preventDefault(); // pass the form to ajax
+
+                $.ajax({    // A http method without the need to reload the page
+                    url: 'main',
+                    type: 'POST',
+                    data: $(this).serialize(),
+                    success: function (response) {
+                        if (response.status === 'error') {
+                            showModal(response.message);
+                        }
+                        if (response.status === 'success') {
+                            $('ul').append('<li>' + response.new_course + '</li>');
+                            $('#courseForm input[name="course_code"]').val('');
+                        }
+                    },
+                    error: function (error) {
+                        console.log(error);
                     }
-                    if (response.status === 'success') {
-                        $('ul').append('<li>' + response.new_course + '</li>');
-                        $('#courseForm input[name="course_code"]').val('');
-                    }
-                },
-                error: function (error) {
-                    console.log(error);
-                }
+                });
             });
         });
-    });
 
-    function showModal(message) {
-        $('#modalMessage').text(message);
-        $('#errorModal').modal();  // Initialize the modal
-        $('#errorModal').modal('show');  // Show the modal
-    }
-</script>
-{% endblock %}
+        function showModal(message) {
+            $('#modalMessage').text(message);
+            $('#errorModal').modal();  // Initialize the modal
+            $('#errorModal').modal('show');  // Show the modal
+        }
+    </script>
+    {% endblock %}

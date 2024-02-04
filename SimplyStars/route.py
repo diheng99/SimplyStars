@@ -10,9 +10,10 @@ from SimplyStars.models import User, db, CourseCode, CourseSchedule
 from flask_login import login_user, current_user
 from bs4 import BeautifulSoup
 import json, traceback
+from datetime import time, timedelta, datetime, date
 
 @app.route('/')
-@app.route('/home', methods=['GET'])
+@app.route('/home', methods=['GET']) # GET method -> Browser requests for a html file
 def home_page():
     return render_template('home.html')
 
@@ -21,7 +22,7 @@ def login_page():
     form = LoginForm()
     
     if form.validate_on_submit():
-        user = User.query.filter_by(username=form.username.data).first()
+        user = User.query.filter_by(username=form.username.data).first() #First record found
         if user and user.check_password_correction(form.password.data):
             login_user(user) # calls the load_user method and store the user'id session
             
@@ -33,10 +34,9 @@ def login_page():
 
 @app.route('/register', methods=['GET', 'POST'])
 def register_page():
-    form = RegisterForm()
+    form = RegisterForm() # Forms are created and passed into html for rendering
     
-    # form.validate will auto invoke customs validators and predefined validators such as Datarequired, email
-    if form.validate_on_submit(): 
+    if form.validate_on_submit(): # Listens for POST submitted by forms.
         new_user = User(username=form.username.data,
                         email_address=form.email_address.data,
                         password=form.password.data)
@@ -51,10 +51,13 @@ def register_page():
 @app.route('/main', methods=['GET', 'POST'])
 def main_page():
     form = CourseCodeForm()
+    monday_schedule_types = {}
+
     if form.validate_on_submit():
         
         exists_course = CourseCode.query.filter_by(course_code=form.course_code.data, user=current_user.id).first()
         if exists_course:
+            # Jsonify is used to convert python dict to JSON and the response is sent back
             return jsonify({'status': 'error', 'message': 'Course already added'})
         else:
             # Create an instance of coursecode not coursecode form
@@ -72,7 +75,20 @@ def main_page():
         
             if response.status_code == 200:
                 if "OK" in response.text:
-                    print("PHP script executed successfully.")
+                    new_course = CourseSchedule.query.filter_by(course_code=form.course_code.data,
+                                                                 user_id=current_user.id).first()
+                    
+                    first_index = CourseSchedule.query.filter_by(course_code=form.course_code.data,
+                                                                 user_id=current_user.id,
+                                                                 course_index=new_course.course_index).all()
+                    
+                    for elements in first_index:
+                        if elements.day == 'MON':
+                            time_slot = elements.time
+                            print(time_slot)
+                            monday_schedule_types[time_slot] = elements.type
+                    print(monday_schedule_types[time_slot])
+
                 else:
                     print("PHP script did not execute as expected. Response:", response.text)
             else:
@@ -80,19 +96,18 @@ def main_page():
         
             return jsonify({'status': 'success', 'new_course': course_code.course_code})
         
+    schedule = generate_time_slots('8:30 AM', '10:30 PM', 50) 
     user_courses = CourseCode.query.filter_by(user=current_user.id).all()
-    return render_template('main.html', form=form, user_courses=user_courses)
+    return render_template('main.html', form=form, user_courses=user_courses, schedule=schedule, monday_schedule_types=monday_schedule_types)
 
 @app.route('/add_course_schedule', methods=['POST'])
 def add_course_schedule():
     try:
         data = request.json
-        print("HTML content:", data['html_content'])
         json_data = json.loads(html_to_json(data['html_content']))
         
         for index_data in json_data:
             course_index = index_data.get('index')
-            print(course_index)
             for detail in index_data['details']:
                 course_detail = CourseSchedule(
                     user_id=data['user_id'],  # Assuming this is sent in the request
@@ -109,13 +124,15 @@ def add_course_schedule():
 
         db.session.commit()
         
-        return jsonify({'status': 'success', 'message': 'Course schedule added successfully.'})
+        return jsonify({'status': 'success',
+                        'message': 'Course schedule added successfully.'})
 
     except Exception as e:
         db.session.rollback()
         print(f"An error occurred: {e}")
         traceback.print_exc()
-        return jsonify({'status': 'error', 'message': 'An error occurred while adding the course schedule.'}), 500
+        return jsonify({'status': 'error',
+                        'message': 'An error occurred while adding the course schedule.'}), 500
     
 def html_to_json(html_content):
     soup = BeautifulSoup(html_content, 'lxml')
@@ -151,3 +168,16 @@ def html_to_json(html_content):
     ## OBJECTS CAN BE REFERENCED 
     json_data = json.dumps(courses, indent=4)
     return json_data
+
+def generate_time_slots(start_time, end_time, interval):
+    time_slots = []
+    current_time = datetime.strptime(start_time, '%I:%M %p')
+    end_time = datetime.strptime(end_time, '%I:%M %p')
+    while current_time + timedelta(minutes=interval) <= end_time:
+        end_interval_time = current_time + timedelta(minutes=interval)
+        formatted_slot = current_time.strftime('%H%M') + '-' + end_interval_time.strftime('%H%M')
+        time_slots.append(formatted_slot)
+        current_time = (current_time + timedelta(hours=1)).replace(minute=current_time.minute)
+    return time_slots
+
+

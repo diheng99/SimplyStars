@@ -6,14 +6,16 @@ from flask_login import UserMixin
 def load_user(user_id):
     return User.query.get(int(user_id))
 
+# UserMixin and db.Model are inheritance by the class User
+# db.Model is object relational mapping
 class User(UserMixin, db.Model):
-    __tablename__ = 'user'
-    id = db.Column(db.Integer(), primary_key=True)
+    __tablename__ = 'user' # Table name is for naming conventions
+    id = db.Column(db.Integer(), primary_key=True)  # Primary key is for unique identifier
     username = db.Column(db.String(length = 30), nullable=False)
     email_address = db.Column(db.String(length = 50), nullable=False, unique=True)
     password_hash = db.Column(db.String(length = 60), nullable=False)
     
-    @property # a decorator to define a getter method 
+    @property # a decorator to define a getter method/ read only attribute
     def password(self):
         raise AttributeError('Password is not a readable attribute')
     
@@ -28,8 +30,8 @@ class CourseCode(db.Model):
     __tablename__ = 'course_code'
     id = db.Column(db.Integer, primary_key=True)
     course_code = db.Column(db.String(100), nullable=False)
-    user = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-
+    user = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False) #ForeginKey ensures referential integrity and cascade operations
+    
 class CourseSchedule(db.Model):
     __tablename__ = 'course_schedule'
     id = db.Column(db.Integer, primary_key=True)
