@@ -52,6 +52,17 @@ def register_page():
 def main_page():
     form = CourseCodeForm()
     monday_schedule_types = {}
+    
+    all_courses = CourseSchedule.query.filter_by(user_id=current_user.id).all()
+    for course in all_courses:
+        if course.day == 'MON':
+            monday_schedule_types[course.time] = {
+                'type': course.type,
+                'course_code': course.course_code,
+                'group': course.group,
+                'venue': course.venue,
+                'remarks': course.remark
+            }
 
     if form.validate_on_submit():
         
@@ -75,19 +86,24 @@ def main_page():
         
             if response.status_code == 200:
                 if "OK" in response.text:
-                    new_course = CourseSchedule.query.filter_by(course_code=form.course_code.data,
-                                                                 user_id=current_user.id).first()
                     
-                    first_index = CourseSchedule.query.filter_by(course_code=form.course_code.data,
-                                                                 user_id=current_user.id,
-                                                                 course_index=new_course.course_index).all()
+                    new_course = CourseSchedule.query.filter_by(course_code=form.course_code.data, user_id=current_user.id).first()
+                
+                    if new_course:
+                        first_index = CourseSchedule.query.filter_by(course_code=form.course_code.data, user_id=current_user.id, course_index=new_course.course_index).all()
                     
                     for elements in first_index:
                         if elements.day == 'MON':
                             time_slot = elements.time
-                            print(time_slot)
-                            monday_schedule_types[time_slot] = elements.type
-                    print(monday_schedule_types[time_slot])
+                            monday_schedule_types[time_slot] = {'type': elements.type,
+                                                                'course_code': elements.course_code,
+                                                                'type': elements.type,
+                                                                'group': elements.group,
+                                                                'venue': elements.venus,
+                                                                'remarks': elements.remark}
+
+                            
+                    return jsonify({'status': 'success', 'new_course': course_code.course_code, 'monday_schedule': monday_schedule_types})
 
                 else:
                     print("PHP script did not execute as expected. Response:", response.text)
@@ -179,5 +195,3 @@ def generate_time_slots(start_time, end_time, interval):
         time_slots.append(formatted_slot)
         current_time = (current_time + timedelta(hours=1)).replace(minute=current_time.minute)
     return time_slots
-
-

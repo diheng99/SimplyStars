@@ -94,6 +94,8 @@ Main
                         if (response.status === 'success') {
                             $('ul').append('<li>' + response.new_course + '</li>');
                             $('#courseForm input[name="course_code"]').val('');
+
+                            updateMondaySchedule(response.monday_schedule);
                         }
                     },
                     error: function (error) {
@@ -103,10 +105,25 @@ Main
             });
         });
 
-        function showModal(message) {
-            $('#modalMessage').text(message);
-            $('#errorModal').modal();  // Initialize the modal
-            $('#errorModal').modal('show');  // Show the modal
+        function updateMondaySchedule(mondaySchedule) {
+            $('#timetable tbody tr').each(function() {
+                var timeSlot = $(this).find('td:first').text();
+        
+                if (mondaySchedule.hasOwnProperty(timeSlot)) {
+                    var scheduleDetails = mondaySchedule[timeSlot];
+                    var detailsString = "Type: " + scheduleDetails.type +
+                                        ", Code: " + scheduleDetails.course_code +
+                                        ", Group: " + scheduleDetails.group +
+                                        ", Venue: " + scheduleDetails.venue +
+                                        ", Remarks: " + scheduleDetails.remarks;
+                    
+                    $(this).find('td:nth-child(2)').text(detailsString);
+                } else {
+                    $(this).find('td:nth-child(2)').text('');
+                }
+            });
         }
+        
+        
     </script>
     {% endblock %}
