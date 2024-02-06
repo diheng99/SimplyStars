@@ -59,15 +59,25 @@ Main
                     {% for time_slot in schedule %}
                     <tr>
                         <td>{{ time_slot }}</td>
-                        <td>{{ monday_schedule_types.get(time_slot, '') }}</td>
-                        <!-- Repeat for other days as needed -->
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
+                        {% for day in ['MON', 'TUE', 'WED', 'THU', 'FRI'] %}
+                            {% set day_schedule = weekly_schedules.get(day, {}).get(time_slot, None) %}
+                            <td>
+                                {% if day_schedule %}
+                                    Type: {{ day_schedule.type }},
+                                    Code: {{ day_schedule.course_code }},
+                                    Group: {{ day_schedule.group }},
+                                    Venue: {{ day_schedule.venue }},
+                                    Remarks: {{ day_schedule.remarks }}
+                                {% else %}
+                                    <!-- If there is no class, you can put a placeholder or leave it empty -->
+                                    Free
+                                {% endif %}
+                            </td>
+                        {% endfor %}
                     </tr>
                     {% endfor %}
                 </tbody>
+                
                 
                 
             </table>
@@ -92,11 +102,10 @@ Main
                             showModal(response.message);
                         }
                         if (response.status === 'success') {
+                            location.reload();
                             $('ul').append('<li>' + response.new_course + '</li>');
                             $('#courseForm input[name="course_code"]').val('');
-
-                            updateMondaySchedule(response.monday_schedule);
-                        }
+                                                }
                     },
                     error: function (error) {
                         console.log(error);
@@ -104,26 +113,6 @@ Main
                 });
             });
         });
-
-        function updateMondaySchedule(mondaySchedule) {
-            $('#timetable tbody tr').each(function() {
-                var timeSlot = $(this).find('td:first').text();
-        
-                if (mondaySchedule.hasOwnProperty(timeSlot)) {
-                    var scheduleDetails = mondaySchedule[timeSlot];
-                    var detailsString = "Type: " + scheduleDetails.type +
-                                        ", Code: " + scheduleDetails.course_code +
-                                        ", Group: " + scheduleDetails.group +
-                                        ", Venue: " + scheduleDetails.venue +
-                                        ", Remarks: " + scheduleDetails.remarks;
-                    
-                    $(this).find('td:nth-child(2)').text(detailsString);
-                } else {
-                    $(this).find('td:nth-child(2)').text('');
-                }
-            });
-        }
-        
         
     </script>
     {% endblock %}

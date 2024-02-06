@@ -2,6 +2,7 @@
 # POST method is used to send data to server to create/update a resource
 # Login form requires the GET forms from server and POST for users to submit forms
 
+import itertools
 import requests
 from SimplyStars import app
 from flask import render_template, redirect, request, url_for, jsonify
@@ -10,7 +11,7 @@ from SimplyStars.models import User, db, CourseCode, CourseSchedule
 from flask_login import login_user, current_user
 from bs4 import BeautifulSoup
 import json, traceback
-from datetime import time, timedelta, datetime, date
+from datetime import timedelta, datetime
 
 @app.route('/')
 @app.route('/home', methods=['GET']) # GET method -> Browser requests for a html file
@@ -52,7 +53,8 @@ def register_page():
 def main_page():
     form = CourseCodeForm()
     monday_schedule_types = {}
-    
+    weekly_schedules = get_schedule(current_user.id)
+
     all_courses = CourseSchedule.query.filter_by(user_id=current_user.id).all()
     for course in all_courses:
         if course.day == 'MON':
@@ -86,24 +88,8 @@ def main_page():
         
             if response.status_code == 200:
                 if "OK" in response.text:
-                    
-                    new_course = CourseSchedule.query.filter_by(course_code=form.course_code.data, user_id=current_user.id).first()
-                
-                    if new_course:
-                        first_index = CourseSchedule.query.filter_by(course_code=form.course_code.data, user_id=current_user.id, course_index=new_course.course_index).all()
-                    
-                    for elements in first_index:
-                        if elements.day == 'MON':
-                            time_slot = elements.time
-                            monday_schedule_types[time_slot] = {'type': elements.type,
-                                                                'course_code': elements.course_code,
-                                                                'type': elements.type,
-                                                                'group': elements.group,
-                                                                'venue': elements.venus,
-                                                                'remarks': elements.remark}
-
-                            
-                    return jsonify({'status': 'success', 'new_course': course_code.course_code, 'monday_schedule': monday_schedule_types})
+                                           
+                    return jsonify({'status': 'success'})
 
                 else:
                     print("PHP script did not execute as expected. Response:", response.text)
@@ -114,7 +100,7 @@ def main_page():
         
     schedule = generate_time_slots('8:30 AM', '10:30 PM', 50) 
     user_courses = CourseCode.query.filter_by(user=current_user.id).all()
-    return render_template('main.html', form=form, user_courses=user_courses, schedule=schedule, monday_schedule_types=monday_schedule_types)
+    return render_template('main.html', form=form, user_courses=user_courses, schedule=schedule, weekly_schedules=weekly_schedules)
 
 @app.route('/add_course_schedule', methods=['POST'])
 def add_course_schedule():
@@ -195,3 +181,79 @@ def generate_time_slots(start_time, end_time, interval):
         time_slots.append(formatted_slot)
         current_time = (current_time + timedelta(hours=1)).replace(minute=current_time.minute)
     return time_slots
+
+def get_schedule(user_id):
+ 
+    weekly_schedule_types = {
+        'MON': {},
+        'TUE': {},
+        'WED': {},
+        'THU': {},
+        'FRI': {}
+    }
+    # Filter all course code registered
+    course_codes = (db.session.query(CourseSchedule.course_code)
+                       .filter_by(user_id=user_id)
+                       .group_by(CourseSchedule.course_code)
+                       .all())
+    
+    # Loop each course code
+    for course_code_tuple in course_codes:
+        course_code = course_code_tuple[0]
+        
+        # Find all index of a course code
+        course_index = (db.session.query(CourseSchedule.course_index)
+                       .filter_by(user_id=user_id, course_code=course_code)
+                       .group_by(CourseSchedule.course_index)
+                       .all())
+        course_scheduled = False
+        
+        for index_tuple in course_index:
+            if course_scheduled:
+                break
+            # Select first index
+            current_index = index_tuple[0]
+            # Gets all details of the index
+            weekly_details_index = CourseSchedule.query.filter_by(user_id=user_id,
+                                                                  course_code=course_code,
+                                                                  course_index=current_index).all()
+            index_schedule = True
+            print(weekly_details_index)
+            for details in weekly_details_index:
+                day_schedule = weekly_schedule_types[details.day]
+                if details.venue == 'ONLINE':
+                    details_key = details.day + details.time
+                    existing = weekly_schedule_types[details.day].get(details_key, "")
+                    current_details = {
+                    'type': details.type,
+                    'course_code': details.course_code,
+                    'group': details.group,
+                    'venue': details.venue,
+                    'remarks': details.remark
+                    }
+                    if existing:
+                        weekly_schedule_types[details.day][details_key] += " / " + str(current_details)
+                    else:
+                        weekly_schedule_types[details.day][details_key] = str(current_details)
+                
+                elif details.time in day_schedule:
+                    index_schedule = False
+                    break
+                
+                else:
+                    day_schedule[details.time] = {
+                    'type': details.type,
+                    'course_code': details.course_code,
+                    'group': details.group,
+                    'venue': details.venue,
+                    'remarks': details.remark
+                }   
+            
+            if index_schedule:
+                course_scheduled = True
+        
+    return weekly_schedule_types
+        
+        
+        
+        
