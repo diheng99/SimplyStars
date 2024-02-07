@@ -217,7 +217,6 @@ def get_schedule(user_id):
                                                                   course_code=course_code,
                                                                   course_index=current_index).all()
             index_schedule = True
-            print(weekly_details_index)
             for details in weekly_details_index:
                 day_schedule = weekly_schedule_types[details.day]
                 if details.venue == 'ONLINE':
@@ -253,6 +252,13 @@ def get_schedule(user_id):
         
     return weekly_schedule_types
         
+@app.route('/delete', methods=['POST'])
+def delete():
+    try:
+        db.session.query(CourseCode).delete()
+        db.session.query(CourseSchedule).delete()
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
         
-        
-        
+    return redirect(url_for('main_page'))

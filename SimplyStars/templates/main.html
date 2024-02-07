@@ -13,6 +13,9 @@ Main
 {% endblock %}
 
 {% block content %}
+<form action="/delete" method="POST">
+    <button type="submit">Delete All</button>
+</form>
 <div class="login-container">
     <h2>Add your course</h2>
     <form id="courseForm" method="POST">
