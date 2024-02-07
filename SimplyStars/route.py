@@ -2,7 +2,6 @@
 # POST method is used to send data to server to create/update a resource
 # Login form requires the GET forms from server and POST for users to submit forms
 
-import itertools
 import requests
 from SimplyStars import app
 from flask import render_template, redirect, request, url_for, jsonify

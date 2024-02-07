@@ -11,7 +11,7 @@
 
 .timetable-container {
     width: 65%; 
-    max-width: 1100px; 
+    max-width: 2000px; 
     padding-left: 4%;
 }
 
@@ -32,7 +32,7 @@
 }
 
 #timetable th, #timetable td {
-    padding: 8px;
+    padding: 10px;
 }
 
 #timetable thead {
