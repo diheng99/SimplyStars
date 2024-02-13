@@ -51,19 +51,8 @@ def register_page():
 @app.route('/main', methods=['GET', 'POST'])
 def main_page():
     form = CourseCodeForm()
-    monday_schedule_types = {}
     weekly_schedules = get_schedule(current_user.id)
-
-    all_courses = CourseSchedule.query.filter_by(user_id=current_user.id).all()
-    for course in all_courses:
-        if course.day == 'MON':
-            monday_schedule_types[course.time] = {
-                'type': course.type,
-                'course_code': course.course_code,
-                'group': course.group,
-                'venue': course.venue,
-                'remarks': course.remark
-            }
+    print(weekly_schedules)
 
     if form.validate_on_submit():
         
@@ -98,6 +87,7 @@ def main_page():
             return jsonify({'status': 'success', 'new_course': course_code.course_code})
         
     schedule = generate_time_slots('8:30 AM', '10:30 PM', 50) 
+    print(schedule)
     user_courses = CourseCode.query.filter_by(user=current_user.id).all()
     return render_template('main.html', form=form, user_courses=user_courses, schedule=schedule, weekly_schedules=weekly_schedules)
 
@@ -190,68 +180,81 @@ def get_schedule(user_id):
         'THU': {},
         'FRI': {}
     }
-    # Filter all course code registered
-    course_codes = (db.session.query(CourseSchedule.course_code)
-                       .filter_by(user_id=user_id)
-                       .group_by(CourseSchedule.course_code)
-                       .all())
     
-    # Loop each course code
+    course_codes = (db.session.query(CourseSchedule.course_code)
+                    .filter_by(user_id=user_id)
+                    .group_by(CourseSchedule.course_code)
+                    .all())
+    
     for course_code_tuple in course_codes:
         course_code = course_code_tuple[0]
         
-        # Find all index of a course code
         course_index = (db.session.query(CourseSchedule.course_index)
-                       .filter_by(user_id=user_id, course_code=course_code)
-                       .group_by(CourseSchedule.course_index)
-                       .all())
-        course_scheduled = False
+                        .filter_by(user_id=user_id, course_code=course_code)
+                        .group_by(CourseSchedule.course_index)
+                        .all())
         
         for index_tuple in course_index:
-            if course_scheduled:
-                break
-            # Select first index
             current_index = index_tuple[0]
-            # Gets all details of the index
-            weekly_details_index = CourseSchedule.query.filter_by(user_id=user_id,
-                                                                  course_code=course_code,
-                                                                  course_index=current_index).all()
-            index_schedule = True
-            for details in weekly_details_index:
-                day_schedule = weekly_schedule_types[details.day]
-                if details.venue == 'ONLINE':
-                    details_key = details.day + details.time
-                    existing = weekly_schedule_types[details.day].get(details_key, "")
-                    current_details = {
-                    'type': details.type,
-                    'course_code': details.course_code,
-                    'group': details.group,
-                    'venue': details.venue,
-                    'remarks': details.remark
-                    }
-                    if existing:
-                        weekly_schedule_types[details.day][details_key] += " / " + str(current_details)
-                    else:
-                        weekly_schedule_types[details.day][details_key] = str(current_details)
-                
-                elif details.time in day_schedule:
-                    index_schedule = False
-                    break
-                
-                else:
-                    day_schedule[details.time] = {
-                    'type': details.type,
-                    'course_code': details.course_code,
-                    'group': details.group,
-                    'venue': details.venue,
-                    'remarks': details.remark
-                }   
+            if clash_free(current_index, weekly_schedule_types, user_id, course_code):
+                populate_schedule(current_index, weekly_schedule_types, user_id, course_code)
+                break
             
-            if index_schedule:
-                course_scheduled = True
-        
     return weekly_schedule_types
-        
+
+def clash_free(current_index, weekly_schedule, user_id, course_code):
+    index_details = CourseSchedule.query.filter_by(user_id=user_id,
+                                                   course_code=course_code,
+                                                   course_index=current_index).all()
+     
+    for details in index_details:
+         day = details.day
+         time = details.time
+         if details.venue == "online":
+             continue
+         if day in weekly_schedule and time in weekly_schedule[day]:
+             return False
+         
+    return True   
+
+def format_time(time_obj):
+    return time_obj.strftime('%H%M')
+
+def populate_schedule(current_index, weekly_schedule, user_id, course_code):
+    index_details = CourseSchedule.query.filter_by(user_id=user_id,
+                                                   course_code=course_code,
+                                                   course_index=current_index).all()
+    
+    for details in index_details:
+        # Split the time string into start and end times
+        start_time_str, end_time_str = details.time.split('-')
+        start_time = datetime.strptime(start_time_str, '%H%M')
+        end_time = datetime.strptime(end_time_str, '%H%M')
+
+        while start_time + timedelta(minutes=50) <= end_time:
+            end_interval_time = start_time + timedelta(minutes=50)
+            time_slot = format_time(start_time) + '-' + format_time(end_interval_time)
+            
+            class_details = {
+                'type': details.type,
+                'index': details.course_index,
+                'group': details.group,
+                'venue': details.venue,
+                'remarks': details.remark
+            }
+            
+            if time_slot in weekly_schedule[details.day] and details.venue == "ONLINE":
+                existing_entry = weekly_schedule[details.day][time_slot]
+                if isinstance(existing_entry, dict):
+                    weekly_schedule[details.day][time_slot] = [existing_entry, class_details]
+                elif isinstance(existing_entry, list):
+                    weekly_schedule[details.day][time_slot].append(class_details)
+            else: 
+                weekly_schedule[details.day][time_slot] = []
+                weekly_schedule[details.day][time_slot].append(class_details)
+            # Move to the next interval
+            start_time = end_interval_time + timedelta(minutes=10)
+
 @app.route('/delete', methods=['POST'])
 def delete():
     try:

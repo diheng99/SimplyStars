@@ -46,41 +46,39 @@ Main
 
         <div class="timetable-container">
             <table id="timetable">
-                <!-- thead creates the header, tr creates a horiztonal row and th for table header -->
                 <thead>
                     <tr>
                         <th>Time</th>
-                        <th>Monday</th>
-                        <th>Tuesday</th>
-                        <th>Wednesday</th>
-                        <th>Thursday</th>
-                        <th>Friday</th>
-                    </tr>
-                </thead>
-                <!-- tbody is used for the main body below the thead. td is used for storing data -->
-                <tbody>
-                    {% for time_slot in schedule %}
-                    <tr>
-                        <td>{{ time_slot }}</td>
                         {% for day in ['MON', 'TUE', 'WED', 'THU', 'FRI'] %}
-                            {% set day_schedule = weekly_schedules.get(day, {}).get(time_slot, None) %}
-                            <td>
-                                {% if day_schedule %}
-                                    Type: {{ day_schedule.type }},
-                                    Code: {{ day_schedule.course_code }},
-                                    Group: {{ day_schedule.group }},
-                                    Venue: {{ day_schedule.venue }},
-                                    Remarks: {{ day_schedule.remarks }}
-                                {% else %}
-             
-                                {% endif %}
-                            </td>
+                            <th>{{ day }}</th>
                         {% endfor %}
                     </tr>
+                </thead>
+                <tbody>
+                    {% for time_slot in schedule %}
+                        <tr>
+                            <td>{{ time_slot }}</td>
+                            {% for day in ['MON', 'TUE', 'WED', 'THU', 'FRI'] %}
+                                <td>
+                                    {% set day_schedule = weekly_schedules.get(day, {}).get(time_slot, []) %}
+                                    {% for class in day_schedule %}
+                                        Type: {{ class['type'] }},
+                                        Course Index: {{ class['index'] }},
+                                        Group: {{ class['group'] }},
+                                        Venue: {{ class['venue'] }},
+                                        Remarks: {{ class.get('remarks', '') }}<br>
+                                    {% endfor %}
+                                    {% if day_schedule|length == 0 %}
+                                        <!-- Empty cell for no class -->
+                                    {% endif %}
+                                </td>
+                            {% endfor %}
+                        </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
+        
     </div>
 
     {% endblock %}
@@ -104,7 +102,7 @@ Main
                             location.reload();
                             $('ul').append('<li>' + response.new_course + '</li>');
                             $('#courseForm input[name="course_code"]').val('');
-                                                }
+                        }
                     },
                     error: function (error) {
                         console.log(error);
@@ -112,6 +110,6 @@ Main
                 });
             });
         });
-        
+
     </script>
     {% endblock %}
