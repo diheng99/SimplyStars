@@ -31,3 +31,13 @@ class CourseCodeForm(FlaskForm):
       
     course_code = StringField(label="Enter Course Code", validators=[DataRequired()])
     add = SubmitField("Add")
+    
+class forgetPasswordForm(FlaskForm):
+    
+    def validate_email_address(self, email_address):
+        user = User.query.filter_by(email_address=email_address.data).first()
+        if not user:
+            raise ValidationError('Email Address do not exists!')
+        
+    email_address = StringField(label='Email Address', validators=[DataRequired()])
+    submit = SubmitField(label = "Reset Email")

@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block title %}
+Forget Password
+{% endblock %}
+
+{% block content %}
+<div class="container text-center">
+    <h2 class="welcome-header" style="color:blue">Forgot your password?</h2>
+    <br><br>
+    <form id="forgetPass" method = "POST">
+        <div class=""form-group">
+            {{ form.email_address.label() }}
+            {{ form.email_address }}
+        </div>
+        <button type="submit" class="btn btn-sm btn-secondary">Reset</button>
+        
+        <div class="checkbox mb-3">
+            <h6>Login</h6>
+            <a class="btn btn-sm btn-secondary" href="{{ url_for('login_page') }}">Back</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

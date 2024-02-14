@@ -11,6 +11,7 @@ from flask_migrate import Migrate
 
 # Creates an instance of the Flask App
 app = Flask(__name__)
+
 # Sets up database
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///SimplyStars.db'
 app.config['SECRET_KEY']='680d06223bae899ff44a5790'
