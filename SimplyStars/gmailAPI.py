@@ -47,14 +47,22 @@ def main():
     creds = None
     token_json_path = 'token.json'
     redirect_uri = 'http://localhost:5000/home'
+    SCOPES = ['https://www.googleapis.com/auth/gmail.send']
 
+    # Check if the token.json file exists and load it
     if os.path.exists(token_json_path):
         creds = Credentials.from_authorized_user_file(token_json_path, SCOPES)
 
+    # If no credentials are available, or if they're invalid, start the authorization flow
     if not creds or not creds.valid:
-        flow = InstalledAppFlow.from_client_secrets_file(filePathCred, SCOPES)
-        flow.redirect_uri = redirect_uri  # Set the redirect URI
-        creds = flow.run_local_server(port=5000)
-        with open(token_json_path, 'w') as token:
-            token.write(creds.to_json())
+        if creds and creds.expired and creds.refresh_token:
+            creds.refresh(Request())  # Refresh the access token using the refresh token
+        else:
+            flow = InstalledAppFlow.from_client_secrets_file('credentials.json', SCOPES)
+            flow.redirect_uri = redirect_uri
+            creds = flow.run_local_server(port=5000)
+            # Save the credentials to token.json
+            with open(token_json_path, 'w') as token:
+                token.write(creds.to_json())
+
 
