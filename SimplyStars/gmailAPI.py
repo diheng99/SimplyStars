@@ -61,8 +61,8 @@ def main():
             flow = InstalledAppFlow.from_client_secrets_file('credentials.json', SCOPES)
             flow.redirect_uri = redirect_uri
             creds = flow.run_local_server(port=5000)
-            # Save the credentials to token.json
-            with open(token_json_path, 'w') as token:
-                token.write(creds.to_json())
+        # Save the credentials to token.json
+        with open(token_json_path, 'w') as token:
+            token.write(creds.to_json())
 
-
+    return build('gmail', 'v1', credentials=creds)

@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Verify OTP
+{% endblock %}
+
+{% block content %}
+<body>
+    <div class="otp-verification-container">
+        <h2>OTP Verification</h2>
+        <form method="POST" action="{{ url_for('otp_verification') }}">
+            {{ form.hidden_tag() }}
+            <div class="form-group">
+                {{ form.otp.label }}
+                {{ form.otp(size=6, maxlength=6) }} <!-- Set size and maxlength to 6 -->
+                {% if form.otp.errors %}
+                    <div class="alert alert-danger">
+                        {% for error in form.otp.errors %}
+                            <p>{{ error }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+            <button type="submit" class="btn">Verify OTP</button>
+        </form>
+    </div>
+</body>
+{% endblock %}

@@ -3,7 +3,7 @@
 
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField
-from wtforms.validators import DataRequired, Email, EqualTo, ValidationError
+from wtforms.validators import DataRequired, Email, EqualTo, ValidationError, Length
 from SimplyStars.models import User
 
 class LoginForm(FlaskForm):
@@ -41,3 +41,9 @@ class forgetPasswordForm(FlaskForm):
         
     email_address = StringField(label='Email Address', validators=[DataRequired()])
     submit = SubmitField(label = "Reset Email")
+    
+class OTPForm(FlaskForm):
+    otp = StringField('OTP', validators=[
+        DataRequired(message='OTP is required'),
+        Length(min=6, max=6, message='OTP must be 6 digits')
+    ])

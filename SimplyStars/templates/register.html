@@ -7,6 +7,10 @@ Register
 {% block content %}
 <div class="login-container">
     <h2>Register</h2>
+    {% for message in get_flashed_messages(category_filter=["error"]) %}
+        <div class="alert alert-danger">{{ message }}</div>
+    {% endfor %}
+
     <form method="POST" action="{{ url_for('register_page') }}">
         {{ form.hidden_tag() }}
         <div class="form-group">
