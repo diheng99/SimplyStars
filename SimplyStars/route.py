@@ -7,7 +7,7 @@ from SimplyStars import app
 from google_auth_oauthlib.flow import InstalledAppFlow
 from SimplyStars.gmailAPI import send_email, generate_otp, SCOPES, filePathCred
 from flask import render_template, redirect, request, url_for, jsonify, session, flash
-from SimplyStars.forms import LoginForm, RegisterForm, CourseCodeForm, forgetPasswordForm, OTPForm
+from SimplyStars.forms import LoginForm, RegisterForm, CourseCodeForm, forgetPasswordForm, OTPForm, changePasswordForm
 from SimplyStars.models import User, db, CourseCode, CourseSchedule
 from flask_login import login_user, current_user
 from SimplyStars.functions import html_to_json, generate_time_slots, get_schedule
@@ -105,8 +105,57 @@ def otp_verification():
 
 
 @app.route('/forgetPassword', methods=['GET','POST'])
-def forgetPass_page():
-    return 'Page not ready'
+def forgetPassword_page():
+    form = forgetPasswordForm()
+    
+    if form.validate_on_submit():
+        otp = generate_otp()
+        send_email(form.email_address.data, otp)
+        
+        session['user_data'] = {
+            'email_address': form.email_address.data,
+            'otp': otp
+        }
+        
+        return redirect(url_for('otp_reset_verify'))
+    
+    return render_template('forgetPassword.html', form=form)
+
+@app.route('/otp_reset_verify', methods=['GET', 'POST'])
+def otp_reset_verify():
+    form = OTPForm()
+
+    if form.validate_on_submit():
+        user_otp = form.otp.data
+
+        # Check if the OTP matches
+        if 'user_data' in session and session['user_data'].get('otp') == user_otp:
+            # OTP is correct, proceed with user registration or next steps
+            # You may want to remove the OTP from the session after successful verification
+            del session['user_data']['otp']
+                
+            return redirect(url_for('change_password'))  # Redirect to a success page or next step
+        
+        else:
+            # OTP is incorrect, show an error message
+            flash('Invalid OTP. Please try again.', 'error')
+
+    return render_template('otp_reset_verify.html', form=form)
+
+@app.route('/change_password', methods=['GET','POST'])
+def change_password():
+    form = changePasswordForm()
+    
+    if form.validate_on_submit():
+        user = User.query.filter_by(email_address=session['user_data']['email_address']).first()
+        
+        user.password = form.password.data
+        db.session.commit()
+        session.pop('user_data', None)
+        return redirect(url_for('login_page'))
+            
+    
+    return render_template('changePassword.html', form=form)
 
 @app.route('/main', methods=['GET', 'POST'])
 def main_page():

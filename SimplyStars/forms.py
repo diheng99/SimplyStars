@@ -33,12 +33,7 @@ class CourseCodeForm(FlaskForm):
     add = SubmitField("Add")
     
 class forgetPasswordForm(FlaskForm):
-    
-    def validate_email_address(self, email_address):
-        user = User.query.filter_by(email_address=email_address.data).first()
-        if not user:
-            raise ValidationError('Email Address do not exists!')
-        
+
     email_address = StringField(label='Email Address', validators=[DataRequired()])
     submit = SubmitField(label = "Reset Email")
     
@@ -47,3 +42,10 @@ class OTPForm(FlaskForm):
         DataRequired(message='OTP is required'),
         Length(min=6, max=6, message='OTP must be 6 digits')
     ])
+
+class changePasswordForm(FlaskForm):
+    
+    password = PasswordField(label='Password', validators=[DataRequired()])
+    confirm_password = PasswordField(label='Confirm Password', validators=[DataRequired(),
+                                    EqualTo('password', message='Passwords must match')])
+    submit = SubmitField(label='Change Password')
