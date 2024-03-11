@@ -262,3 +262,20 @@ def delete():
         db.session.rollback()
         
     return redirect(url_for('main_page'))
+
+@app.route('/set_time_preference', methods=['POST'])
+def set_time_preference():
+    data = request.json
+    time_preference = data.get('time')
+    print("Time Preference:", time_preference)
+    
+
+    return jsonify({"message": "Time preference received"}), 200
+
+@app.route('/set_day_preference', methods=['POST'])
+def set_day_preference():
+    data = request.get_json()
+    selected_days = data['num_days']
+    print("Selected days:", selected_days)
+    
+    return jsonify({"message": "Selection updated", "selectedDays": selected_days})
