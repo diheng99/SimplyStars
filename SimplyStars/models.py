@@ -30,6 +30,8 @@ class CourseCode(db.Model):
     __tablename__ = 'course_code'
     id = db.Column(db.Integer, primary_key=True)
     course_code = db.Column(db.String(100), nullable=False)
+    course_name = db.Column(db.String(100), nullable=False)
+    course_au = db.Column(db.Integer(), nullable=False)
     user = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False) #ForeginKey ensures referential integrity and cascade operations
     
 class CourseSchedule(db.Model):

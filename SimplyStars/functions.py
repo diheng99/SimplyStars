@@ -3,6 +3,16 @@ from datetime import timedelta, datetime
 from SimplyStars.models import db, CourseSchedule
 import json
 
+def get_coursename_au(html_content):
+    soup = BeautifulSoup(html_content, 'lxml')
+    
+    rows = soup.find_all('tr')
+    course_code = rows[0].find_all('td')[0].text.strip()
+    course_name = rows[0].find_all('td')[1].text.strip()
+    au_value = rows[0].find_all('td')[2].text.strip()
+    
+    return course_code, course_name, au_value
+
 def html_to_json(html_content):
     soup = BeautifulSoup(html_content, 'lxml')
     
@@ -84,15 +94,28 @@ def clash_free(current_index, weekly_schedule, user_id, course_code):
     index_details = CourseSchedule.query.filter_by(user_id=user_id,
                                                    course_code=course_code,
                                                    course_index=current_index).all()
+    odd = "Teaching Wk1,3,5,7,9,11,13"
+    even = "Teaching Wk2,4,6,8,10,12"
      
     for details in index_details:
          day = details.day
          time = details.time
+
          if details.venue == "online":
              continue
          if day in weekly_schedule and time in weekly_schedule[day]:
-             return False
-         
+             
+             scheduled_class = weekly_schedule[day][time]
+             for classes in scheduled_class:
+                 if classes['remarks'] != odd and classes['remarks'] != even:
+                     return False
+                 
+                 if classes['remarks'] == odd and details.remarks == odd:
+                     return False
+                 
+                 if classes['remarks'] == even and details.remarks == even:
+                     return False
+                      
     return True   
 
 def format_time(time_obj):
@@ -121,7 +144,7 @@ def populate_schedule(current_index, weekly_schedule, user_id, course_code):
                 'remarks': details.remark
             }
             
-            if time_slot in weekly_schedule[details.day] and details.venue == "ONLINE":
+            if time_slot in weekly_schedule[details.day] and details.venue:
                 existing_entry = weekly_schedule[details.day][time_slot]
                 if isinstance(existing_entry, dict):
                     weekly_schedule[details.day][time_slot] = [existing_entry, class_details]

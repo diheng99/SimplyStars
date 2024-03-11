@@ -5,14 +5,44 @@ Verify OTP
 {% endblock %}
 
 {% block content %}
+<style>
+    body {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        margin: 0;
+    }
+
+    .otp-verification-container {
+        text-align: center;
+    }
+
+    .form-group {
+        margin-top: 20px; 
+    }
+
+    input {
+        text-align: center;
+        width: 2em;  
+        margin: 0 5px;   
+    }
+</style>
+
 <body>
     <div class="otp-verification-container">
-        <h2>OTP Verification</h2>
+        <h2>Enter your 6-digit OTP now:</h2>
         <form method="POST" action="{{ url_for('otp_reset_verify') }}">
             {{ form.hidden_tag() }}
+            
+            <!-- Hidden input field for the concatenated OTP -->
+            <input type="hidden" id="hidden-otp" name="otp">
+
             <div class="form-group">
-                {{ form.otp.label }}
-                {{ form.otp(size=6, maxlength=6) }} <!-- Set size and maxlength to 6 -->
+                {% for i in range(1, 7) %}
+                <input type="text" id="digit-{{ i }}" name="digit-{{ i }}" pattern="\d" size="1" maxlength="1" required oninput="moveToNext(this, 'digit-{{ i+1 }}'); concatenateOTP();">
+                {% endfor %}
+                
                 {% if form.otp.errors %}
                     <div class="alert alert-danger">
                         {% for error in form.otp.errors %}
@@ -21,8 +51,31 @@ Verify OTP
                     </div>
                 {% endif %}
             </div>
+
             <button type="submit" class="btn">Verify OTP</button>
         </form>
     </div>
+
+    <script>
+        function moveToNext(currentInput, nextInputId) {
+            const maxLength = parseInt(currentInput.getAttribute('maxlength'));
+            const currentLength = currentInput.value.length;
+            if (currentLength === maxLength) {
+                const nextInput = document.getElementById(nextInputId);
+                if (nextInput) {
+                    nextInput.focus();
+                }
+            }
+        }
+
+        function concatenateOTP() {
+            const otp = Array.from({ length: 6 }, (_, i) => {
+                const input = document.getElementById(`digit-${i + 1}`);
+                return input ? input.value : '';
+            }).join('');
+
+            document.getElementById('hidden-otp').value = otp;
+        }
+    </script>
 </body>
 {% endblock %}

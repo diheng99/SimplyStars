@@ -10,7 +10,7 @@ from flask import render_template, redirect, request, url_for, jsonify, session,
 from SimplyStars.forms import LoginForm, RegisterForm, CourseCodeForm, forgetPasswordForm, OTPForm, changePasswordForm
 from SimplyStars.models import User, db, CourseCode, CourseSchedule
 from flask_login import login_user, current_user
-from SimplyStars.functions import html_to_json, generate_time_slots, get_schedule
+from SimplyStars.functions import html_to_json, generate_time_slots, get_schedule, get_coursename_au
 import json, traceback
 
 @app.route('/')
@@ -161,7 +161,6 @@ def change_password():
 def main_page():
     form = CourseCodeForm()
     weekly_schedules = get_schedule(current_user.id)
-    print(weekly_schedules)
 
     if form.validate_on_submit():
         
@@ -172,9 +171,7 @@ def main_page():
         else:
             # Create an instance of coursecode not coursecode form
             course_code=CourseCode(course_code=form.course_code.data, user=current_user.id)
-            db.session.add(course_code)
-            db.session.commit()
-
+            
             php_endpoint = "http://127.0.0.1:80/course_schedule.php"
             payload = {
                 'course_code': form.course_code.data,
@@ -185,7 +182,7 @@ def main_page():
         
             if response.status_code == 200:
                 if "OK" in response.text:
-                                           
+                 
                     return jsonify({'status': 'success'})
 
                 else:
@@ -193,10 +190,9 @@ def main_page():
             else:
                 print("Failed to make a request to the PHP script. Status Code:", response.status_code)
         
-            return jsonify({'status': 'success', 'new_course': course_code.course_code})
+            return jsonify({'status': 'success'})
         
     schedule = generate_time_slots('8:30 AM', '10:30 PM', 50) 
-    print(schedule)
     user_courses = CourseCode.query.filter_by(user=current_user.id).all()
     return render_template('main.html', form=form, user_courses=user_courses, schedule=schedule, weekly_schedules=weekly_schedules)
 
@@ -204,8 +200,15 @@ def main_page():
 def add_course_schedule():
     try:
         data = request.json
-        json_data = json.loads(html_to_json(data['html_content']))
+
+        course_code, course_name, au_value = get_coursename_au(data['html_content'])
+        userId = data['user_id']
         
+        course_code=CourseCode(course_code=course_code, course_name = course_name, course_au = au_value, user=userId)
+        db.session.add(course_code)
+        db.session.commit()
+        
+        json_data = json.loads(html_to_json(data['html_content']))
         for index_data in json_data:
             course_index = index_data.get('index')
             for detail in index_data['details']:
@@ -233,6 +236,21 @@ def add_course_schedule():
         traceback.print_exc()
         return jsonify({'status': 'error',
                         'message': 'An error occurred while adding the course schedule.'}), 500
+
+@app.route('/delete_course/<string:course_code>', methods=['POST'])
+def delete_course(course_code):
+    print(course_code)
+    course = CourseCode.query.filter_by(course_code=course_code, user=current_user.id).first()
+    db.session.delete(course)
+    db.session.commit()
+    
+    course_Schedule = CourseSchedule.query.filter_by(course_code=course_code, user_id=current_user.id).all()
+    for records in course_Schedule:
+        db.session.delete(records)
+
+    db.session.commit()
+    
+    return redirect(url_for('main_page'))
 
 @app.route('/delete', methods=['POST'])
 def delete():

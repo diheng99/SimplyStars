@@ -34,10 +34,18 @@ Main
 <div class="content-container">
     <div class="course_container">
         <h2>Your Courses</h2>
-        <!-- ul is a HTML element to represent an unordered list, li is list item -->
         <ul>
             {% for course in user_courses %}
-            <li>{{ course.course_code }}</li>
+            <li>
+                <span>{{ course.course_code }}</span>
+                <span>{{ course.course_name }}</span>
+                <span>{{ course.course_au }}</span>
+                <!-- Delete button form -->
+                <form action="{{ url_for('delete_course', course_code=course.course_code) }}" method="POST">
+                    <input type="hidden" name="course_code" value="{{ course.course_code }}">
+                    <button type="submit">Remove</button>
+                </form>
+            </li>
             {% endfor %}
         </ul>
     </div>
@@ -100,8 +108,8 @@ Main
                         }
                         if (response.status === 'success') {
                             location.reload();
-                            $('ul').append('<li>' + response.new_course + '</li>');
-                            $('#courseForm input[name="course_code"]').val('');
+                            //$('ul').append('<li>' + response.new_course + '</li>');
+                            //$('#courseForm input[name="course_code"]').val('');
                         }
                     },
                     error: function (error) {
