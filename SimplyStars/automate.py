@@ -1,52 +1,6 @@
-from bs4 import BeautifulSoup
 from datetime import timedelta, datetime
 from SimplyStars.models import db, CourseSchedule
-import json
-
-def get_coursename_au(html_content):
-    soup = BeautifulSoup(html_content, 'lxml')
-    
-    rows = soup.find_all('tr')
-    course_code = rows[0].find_all('td')[0].text.strip()
-    course_name = rows[0].find_all('td')[1].text.strip()
-    au_value = rows[0].find_all('td')[2].text.strip()
-    
-    return course_code, course_name, au_value
-
-def html_to_json(html_content):
-    soup = BeautifulSoup(html_content, 'lxml')
-    
-    courses = []
-    
-    current_course = None
-    
-    for row in soup.find_all('tr'):
-        columns = row.find_all('td')
-        
-        if columns and columns[0].get_text(strip=True).isdigit():
-            
-            current_course = {
-                'index':columns[0].get_text(strip=True),
-                'details': []
-            }
-            courses.append(current_course)
-        
-        if current_course:
-            details = {
-                'type': columns[1].get_text(strip=True) if len(columns) > 1 else "",
-                'group': columns[2].get_text(strip=True) if len(columns) > 2 else "",
-                'day': columns[3].get_text(strip=True) if len(columns) > 3 else "",
-                'time': columns[4].get_text(strip=True) if len(columns) > 4 else "",
-                'venue': columns[5].get_text(strip=True) if len(columns) > 5 else "",
-                'remark': columns[6].get_text(strip=True) if len(columns) > 6 else "",
-            }
-            if any(details.values()):
-                current_course['details'].append(details)
-    ## JSON DUMPS CONVERTS PYTHON OBJECT TO STRINGS
-    ## USE LOADS TO PARSE STRING BACK TO OBJECT 
-    ## OBJECTS CAN BE REFERENCED 
-    json_data = json.dumps(courses, indent=4)
-    return json_data
+from flask import session
 
 def generate_time_slots(start_time, end_time, interval):
     time_slots = []
@@ -59,8 +13,10 @@ def generate_time_slots(start_time, end_time, interval):
         current_time = (current_time + timedelta(hours=1)).replace(minute=current_time.minute)
     return time_slots
 
-def get_schedule(user_id):
- 
+def get_automated_schedule(user_id, time_preference, day_preference):
+    
+    result = None
+    session['time_preference'] = time_preference
     weekly_schedule_types = {
         'MON': {},
         'TUE': {},
@@ -68,41 +24,7 @@ def get_schedule(user_id):
         'THU': {},
         'FRI': {}
     }
-    ################################################################################
-    # get all unique course code
-    course_codes = (db.session.query(CourseSchedule.course_code)
-                    .filter_by(user_id=user_id)
-                    .group_by(CourseSchedule.course_code)
-                    .all())
     
-    course_codes_stack = []
-    course_indices_stack = {}
-    
-    for course_code_tuple in course_codes:
-        course_code = course_code_tuple[0]
-        course_codes_stack.append(course_code)
-        
-        course_index = (db.session.query(CourseSchedule.course_index)
-                        .filter_by(user_id=user_id, course_code=course_code)
-                        .group_by(CourseSchedule.course_index)
-                        .all())
-        
-        indices_stack = [index_tuple[0] for index_tuple in course_index]
-    
-        # Map this list of indices to the course code in the dictionary
-        course_indices_stack[course_code] = indices_stack
-
-    pop_course = course_codes_stack.pop()
-    course_schedule_stack = []
-    course_schedule_stack.append(pop_course)
-
-    
- 
-    # test = course_indices_stack['SC1004']
-    # print(test)
-    ################################################################################
-
-    # get all unique course code
     course_codes = (db.session.query(CourseSchedule.course_code)
                     .filter_by(user_id=user_id)
                     .group_by(CourseSchedule.course_code)
@@ -110,8 +32,7 @@ def get_schedule(user_id):
     
     for course_code_tuple in course_codes:
         course_code = course_code_tuple[0]
-        
-        # get all unique course index 
+        result = False
         course_index = (db.session.query(CourseSchedule.course_index)
                         .filter_by(user_id=user_id, course_code=course_code)
                         .group_by(CourseSchedule.course_index)
@@ -119,13 +40,18 @@ def get_schedule(user_id):
         
         for index_tuple in course_index:
             current_index = index_tuple[0]
+            
             if clash_free(current_index, weekly_schedule_types, user_id, course_code):
                 populate_schedule(current_index, weekly_schedule_types, user_id, course_code)
+                result = True
                 break
-            
-    return weekly_schedule_types
+        
+        return weekly_schedule_types, result
+    
+    return weekly_schedule_types, result
 
 def clash_free(current_index, weekly_schedule, user_id, course_code):
+    
     index_details = CourseSchedule.query.filter_by(user_id=user_id,
                                                    course_code=course_code,
                                                    course_index=current_index).all()
@@ -138,6 +64,12 @@ def clash_free(current_index, weekly_schedule, user_id, course_code):
 
          if details.venue == "online":
              continue
+         
+         start_time = int(time.split('-')[0])
+         if session.get('time_preference') == 'afternoon':
+             if start_time < 1230:
+                 return False
+             
          if day in weekly_schedule and time in weekly_schedule[day]:
              
              scheduled_class = weekly_schedule[day][time]
@@ -151,7 +83,7 @@ def clash_free(current_index, weekly_schedule, user_id, course_code):
                  if classes['remarks'] == even and details.remarks == even:
                      return False
                       
-    return True   
+    return True
 
 def format_time(time_obj):
     return time_obj.strftime('%H%M')

@@ -40,10 +40,20 @@ Main
 
 <label for="num_days">Select number of days:</label>
 <select name="num_days" id="num_days">
+    <option value="">Please select</option> <!-- Default unselected option -->
     {% for num in range(2, 6) %}
     <option value="{{ num }}">{{ num }}</option>
     {% endfor %}
 </select>
+
+
+<button id="automateBtn">Automate</button>
+
+<!-- Overlay (hidden by default) -->
+<div id="overlay" style="display:none;">
+    <div id="text">Generating...</div>
+</div>
+
 
 <div class="content-container">
     <div class="course_container">
@@ -176,4 +186,31 @@ Main
         });
     </script>
 
-    {% endblock %}
+    <script>
+        $(document).ready(function(){
+            $("#automateBtn").click(function(){
+                // Show the overlay
+                $("#overlay").fadeIn(300);
+        
+                // Start the AJAX call to your Flask route
+                $.ajax({
+                    url: "{{ url_for('automate_timetable') }}", // Adjust with your route's name
+                    type: 'GET', // or 'POST', depending on your route
+                    success: function(response) {
+                        // Process the response here
+                        location.reload();
+                        // Hide the overlay once the call is successful
+                        $("#overlay").fadeOut(300);
+                    },
+                    error: function(xhr, status, error) {
+                        // Handle errors here, such as showing an error message
+                        console.error("Error: " + error);
+                        alert("Fail to automate")
+                        $("#overlay").fadeOut(300);
+                    }
+                });
+            });
+        });
+        </script>
+
+{% endblock %}

@@ -11,6 +11,7 @@ from SimplyStars.forms import LoginForm, RegisterForm, CourseCodeForm, forgetPas
 from SimplyStars.models import User, db, CourseCode, CourseSchedule
 from flask_login import login_user, current_user
 from SimplyStars.functions import html_to_json, generate_time_slots, get_schedule, get_coursename_au
+from SimplyStars.automate import get_automated_schedule
 import json, traceback
 
 @app.route('/')
@@ -160,8 +161,12 @@ def change_password():
 @app.route('/main', methods=['GET', 'POST'])
 def main_page():
     form = CourseCodeForm()
-    weekly_schedules = get_schedule(current_user.id)
-
+    print(session.get('timetable_mode'))
+    if session.get('timetable_mode') == 'automated':
+        weekly_schedules = json.loads(session.get('weekly_schedules'))
+    else:
+        weekly_schedules = get_schedule(current_user.id)
+        
     if form.validate_on_submit():
         
         exists_course = CourseCode.query.filter_by(course_code=form.course_code.data, user=current_user.id).first()
@@ -170,7 +175,6 @@ def main_page():
             return jsonify({'status': 'error', 'message': 'Course already added'})
         else:
             # Create an instance of coursecode not coursecode form
-            course_code=CourseCode(course_code=form.course_code.data, user=current_user.id)
             
             php_endpoint = "http://127.0.0.1:80/course_schedule.php"
             payload = {
@@ -239,7 +243,7 @@ def add_course_schedule():
 
 @app.route('/delete_course/<string:course_code>', methods=['POST'])
 def delete_course(course_code):
-    print(course_code)
+    
     course = CourseCode.query.filter_by(course_code=course_code, user=current_user.id).first()
     db.session.delete(course)
     db.session.commit()
@@ -250,10 +254,32 @@ def delete_course(course_code):
 
     db.session.commit()
     
+    coursecode = CourseCode.query.filter_by(user=current_user.id).all()
+    if not coursecode:
+        session['timetable_mode'] = 'default'
+        return redirect(url_for('main_page'))
+        
+    if session.get('timetable_mode') == 'automated' and coursecode:
+        automated_results = get_automated_schedule(current_user.id, session.get('time_preference'), session.get('day_preference'))
+        session['weekly_schedules'] = json.dumps(automated_results[0])
+
     return redirect(url_for('main_page'))
 
 @app.route('/delete', methods=['POST'])
 def delete():
+    
+    if session['timetable_mode'] == 'automated':
+        try:
+            session['timetable_mode'] = 'default'
+            db.session.query(CourseCode).delete()
+            db.session.query(CourseSchedule).delete()
+            db.session.commit()
+            automated_results = get_automated_schedule(current_user.id, session.get('time_preference'), session.get('day_preference'))
+            session['weekly_schedules'] = json.dumps(automated_results[0])
+            
+            return redirect(url_for(main_page))
+        except Exception as e:
+            db.session.rollback()
     try:
         db.session.query(CourseCode).delete()
         db.session.query(CourseSchedule).delete()
@@ -267,7 +293,7 @@ def delete():
 def set_time_preference():
     data = request.json
     time_preference = data.get('time')
-    print("Time Preference:", time_preference)
+    session['time_preference'] = time_preference
     
 
     return jsonify({"message": "Time preference received"}), 200
@@ -275,7 +301,34 @@ def set_time_preference():
 @app.route('/set_day_preference', methods=['POST'])
 def set_day_preference():
     data = request.get_json()
-    selected_days = data['num_days']
-    print("Selected days:", selected_days)
+    day_preference = data['num_days']
+    session['day_preference'] = day_preference
     
-    return jsonify({"message": "Selection updated", "selectedDays": selected_days})
+    return jsonify({"message": "Selection updated", "selectedDays": day_preference})
+
+@app.route('/automate_timetable', methods=['GET'])
+def automate_timetable():
+    
+    coursecode = CourseCode.query.filter_by(user=current_user.id).all()
+    if not coursecode:
+
+        return jsonify({'status': 'error', 'message': 'Automation unsuccessfully'})
+    
+    time_preference = session.get('time_preference')
+    day_preference = session.get('day_preference')
+    
+    if not time_preference and not day_preference:
+        return jsonify({'status': 'error', 'message': 'No preference selected'})
+
+    session['timetable_mode'] = 'automated'
+
+    automated_results = get_automated_schedule(current_user.id, time_preference, day_preference)
+    session['weekly_schedules'] = json.dumps(automated_results[0])
+
+    if automated_results[1] == False:
+        session['timetable_mode'] = 'default'
+        del session['weekly_schedules']
+        return jsonify({'status': 'error', 'message': 'Automation unsuccessfully'})
+    else:
+        
+        return jsonify({'status': 'success', 'message': 'Automation completed successfully'})
