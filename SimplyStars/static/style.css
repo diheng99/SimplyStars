@@ -1,30 +1,100 @@
+.top-bar {
+    background-color: #7C7C7C; 
+    height: 80px; 
+    width: calc(100% - 20px); 
+    margin: 0 auto; 
+    margin-top: 10px;
+    border-radius: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.welcome-bar{
+    background-color: black; 
+    height: 60px; 
+    width: 600px; 
+    border-radius: 10px;
+    color: white;
+    text-align: center;
+    margin: 0 auto;
+    font-size: 30px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.help-button {
+    background-color: black;
+    color: white;
+    border: none;
+    font-size: 30px;    
+    padding: 10px 20px;
+    border-radius: 10px;
+    cursor: pointer;
+    height: 60px; 
+    margin-right: 100px;
+}
+
+.logout-button {
+    background-color: black;
+    color: white;
+    border: none;
+    font-size: 30px;    
+    padding: 10px 20px;
+    border-radius: 10px;
+    cursor: pointer;
+    height: 60px; 
+    margin-right: 20px;
+}
+
+.filters{
+    color: white;
+    align-items: center;    
+}
+
+#automateBtn{
+    display: inline-block; 
+    float: right; 
+    font-size:30px; 
+    border-radius: 10px;
+    color: white;
+    background-color: black;
+}
+
 .content-container {
     display: flex;
     align-items: flex-start;
 }
 
 .courses-container {
-    width: 30%; 
+    width: 100%; 
     margin-right: 5%;
     padding-right: 4%;
 }
 
 .timetable-container {
-    width: 65%; 
-    max-width: 2000px; 
+    width: 95%; 
+    max-width: 1250px; 
     padding-left: 4%;
+    align-items: center;
+    text-align: center;
 }
 
 #timetable {
-    border-collapse: collapse;
-    text-align: center;
-    width: 100%;
-}
-
-#timetable {
-    width: 100%;
-    border-collapse: collapse;
-    text-align: center;
+    border-collapse: separate;
+    text-indent: initial;
+    line-height: normal;
+    font-weight: normal;
+    font-size: medium;
+    font-style: normal;
+    color: white;
+    text-align: start;
+    border-spacing: 1px;
+    white-space: normal;
+    font-variant: normal;
+    font: 1em/1.55 Lato, Arial, sans-serif;
 }
 
 #timetable, #timetable th, #timetable td {
@@ -32,7 +102,8 @@
 }
 
 #timetable th, #timetable td {
-    padding: 10px;
+    font-size: 10px;
+    color: black;
 }
 
 #timetable thead {
@@ -40,7 +111,11 @@
 }
 
 #timetable tr:nth-child(even) {
-    background-color: #432f2f;
+    background-color: #CAE2EA; /*#432f2f;*/
+}
+
+#timetable tr:nth-child(odd) {
+    background-color: #EBFAFF
 }
 
 #timetable tr:hover {
@@ -53,11 +128,10 @@
 }
 
 #timetable th {
-    padding-top: 12px;
-    padding-bottom: 12px;
     text-align: center;
-    background-color: #4f6d87;
+    background-color: #BCBCC8; /*#4f6d87;*/
     color: rgb(19, 16, 16);
+    font-size: 10px;
 }
 
 #overlay {
@@ -83,3 +157,63 @@
     transform: translate(-50%,-50%);
     -ms-transform: translate(-50%,-50%);
 }
+/* Everything below is for tooltip styling */
+.tooltip {
+    position: relative;
+    display: inline-block;
+    opacity: 1;
+    border-bottom: 1px dotted black;
+  }
+  
+  .tooltip .tooltiptext {
+    visibility: hidden;
+    width: 120px;
+    background-color: black;
+    color: white;
+    text-align: center;
+    border-radius: 10px;
+    padding: 5px 0;
+    
+    /* Position the tooltip */
+    position: absolute;
+    z-index: 1;
+    top: -195px;
+    left: 55px;
+  }
+  
+  .tooltip:hover .tooltiptext {
+    visibility: visible;
+  }
+
+  .course-li {
+    background-color: #C1C1C1; 
+    text-align: left; 
+    padding:10px; 
+    word-wrap: break-word; 
+    width:230px; 
+    list-style-type: none; 
+    border-radius: 10px; 
+    margin-bottom: 5px;
+  }
+
+  .courselist {
+    position: relative;
+}
+
+  .removebutton {
+    background-color: transparent;
+    border: none;
+    position: absolute;
+    top: -12px;
+    right: -12px;
+  }
+
+  .removebutton svg {
+    width: 100%;
+    height: 100%;
+}
+
+  .bi.bi-x-circle:hover path {
+    fill: red; /* Change the X color to red on hover */
+}
+  

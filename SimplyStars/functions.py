@@ -70,31 +70,31 @@ def get_schedule(user_id):
     }
     ################################################################################
     # get all unique course code
-    course_codes = (db.session.query(CourseSchedule.course_code)
-                    .filter_by(user_id=user_id)
-                    .group_by(CourseSchedule.course_code)
-                    .all())
+    # course_codes = (db.session.query(CourseSchedule.course_code)
+    #                 .filter_by(user_id=user_id)
+    #                 .group_by(CourseSchedule.course_code)
+    #                 .all())
     
-    course_codes_stack = []
-    course_indices_stack = {}
+    # course_codes_stack = []
+    # course_indices_stack = {}
     
-    for course_code_tuple in course_codes:
-        course_code = course_code_tuple[0]
-        course_codes_stack.append(course_code)
+    # for course_code_tuple in course_codes:
+    #     course_code = course_code_tuple[0]
+    #     course_codes_stack.append(course_code)
         
-        course_index = (db.session.query(CourseSchedule.course_index)
-                        .filter_by(user_id=user_id, course_code=course_code)
-                        .group_by(CourseSchedule.course_index)
-                        .all())
+    #     course_index = (db.session.query(CourseSchedule.course_index)
+    #                     .filter_by(user_id=user_id, course_code=course_code)
+    #                     .group_by(CourseSchedule.course_index)
+    #                     .all())
         
-        indices_stack = [index_tuple[0] for index_tuple in course_index]
+    #     indices_stack = [index_tuple[0] for index_tuple in course_index]
     
-        # Map this list of indices to the course code in the dictionary
-        course_indices_stack[course_code] = indices_stack
+    #     # Map this list of indices to the course code in the dictionary
+    #     course_indices_stack[course_code] = indices_stack
 
-    pop_course = course_codes_stack.pop()
-    course_schedule_stack = []
-    course_schedule_stack.append(pop_course)
+    # pop_course = course_codes_stack.pop()
+    # course_schedule_stack = []
+    # course_schedule_stack.append(pop_course)
 
     
  

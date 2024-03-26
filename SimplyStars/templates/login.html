@@ -6,29 +6,34 @@ Login Page
 
 {% block content %}
 <div class="container text-center">
-    <h2 class="welcome-header" style="color:aquamarine">You are 1 step away from using SimplyStars! Login</h2>
-    <br><br>
-    <form id="login" method="POST">
+    <h2 class="welcome-header" style="color: aquamarine;">You are 1 step away from using SimplyStars! Login</h2>
+    <br>
+
+    <form id="login" method="POST" class="text-left" style="width: 50%; margin: 0 auto;">
         {{ form.hidden_tag() }}
+
         <div class="form-group">
-            {{ form.username.label() }}
-            {{ form.username() }}
+            <label for="{{ form.username.id }}">Enter your username:</label>
+            {{ form.username(class="form-control", placeholder="Username") }}
         </div>
+
         <div class="form-group">
-            {{ form.password.label() }}
-            {{ form.password() }}
+            <label for="{{ form.password.id }}">Enter your password:</label>
+            {{ form.password(class="form-control", placeholder="Password") }}
         </div>
-        <button type="submit" class="btn btn-sm btn-secondary">Login</button>
-        <br><br>
-        <div class="checkbox mb-3">
-            <h6> Do not have an account?</h6>
+
+        <button type="submit" class="btn btn-sm btn-secondary mt-2">Login</button>
+        
+        <div class="mt-4">
+            <h6>Don't have an account?</h6>
             <a class="btn btn-sm btn-secondary" href="{{ url_for('register_page') }}">Register</a>
         </div>
-        <div class="checkbox mb-3">
-            <h6> Forget Password?</h6>
-            <a class="btn btn-sm btn-secondary" href="{{ url_for('forgetPassword_page') }}">Forget Password</a>
+
+        <div class="mt-2">
+            <h6>Forgot your password?</h6>
+            <a class="btn btn-sm btn-secondary" href="{{ url_for('forgetPassword_page') }}">Forgot Password</a>
         </div>
     </form>
-
 </div>
 {% endblock %}
+

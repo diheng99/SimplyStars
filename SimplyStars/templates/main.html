@@ -13,41 +13,18 @@ Main
 {% endblock %}
 
 {% block content %}
-<form action="/delete" method="POST">
-    <button type="submit">Delete All</button>
-</form>
-<div class="login-container">
-    <h2>Add your course</h2>
-    <form id="courseForm" method="POST">
-        {{ form.hidden_tag() }}
-        <div class="form-group">
-            <!-- renders the label and input field -->
-            {{ form.course_code.label() }}
-            {{ form.course_code() }}
-        </div>
-        <div class="form-group">
-            {{ form.add() }}
-        </div>
-    </form>
+
+<div class="top-bar">
+    <!-- Source: https://www.deviantart.com/doctor-g/art/Cute-Star-832369254 -->
+    <!-- Url shortened with: https://t.ly/image/url-shortener-->
+    <img src="https://t.ly/Q54qQ" style="width:70px; margin-left:20px">
+    <div class="welcome-bar">Welcome to SimplyStars!</div>
+    <div class="help-button">Help</div>
+    <button class="logout-button">Logout</button>
 </div>
 
-<form id="timeForm">
-    <input type="radio" id="morning" name="time" value="morning">
-    <label for="morning">Morning</label><br>
-    <input type="radio" id="afternoon" name="time" value="afternoon">
-    <label for="afternoon">Afternoon</label>
-</form>
 
-<label for="num_days">Select number of days:</label>
-<select name="num_days" id="num_days">
-    <option value="">Please select</option> <!-- Default unselected option -->
-    {% for num in range(2, 6) %}
-    <option value="{{ num }}">{{ num }}</option>
-    {% endfor %}
-</select>
-
-
-<button id="automateBtn">Automate</button>
+<br>
 
 <!-- Overlay (hidden by default) -->
 <div id="overlay" style="display:none;">
@@ -55,32 +32,97 @@ Main
 </div>
 
 
-<div class="content-container">
-    <div class="course_container">
-        <h2>Your Courses</h2>
-        <ul>
+<div class="content-container" style="padding-left: 10px;">
+    <div class="course_container" style="padding: 10px; background-color: #7C7C7C; border-radius: 10px;">
+        <!-- <h2>Your Courses</h2> -->
+        <div class="login-container">
+            <!-- <h2>Add your course</h2> -->
+            <form id="courseForm" method="POST">
+                {{ form.hidden_tag() }}
+                <div class="form-group">
+                    <!-- renders the label and input field -->
+                    <!-- {{ form.course_code.label() }} -->
+                    {{ form.course_code(class="rounded-pill") }}
+                    <button type="submit" style="border-radius: 50%; background-color:grey; padding-bottom:5px;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 512 512">
+                            <!--!Font Awesome Free 6.5.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.-->
+                            <path
+                                d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352a144 144 0 1 0 0-288 144 144 0 1 0 0 288z" />
+                        </svg>
+                        <span style="display: none;">{{ form.add.label }}</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <form action="/delete" method="POST">
+            <h4 style="color: white; font: Semi-Bold; ">
+                Courses:
+                <button type="submit"
+                    style="border-radius: 10px; background-color: black; color:white; padding-left:5px; padding-right:5px">Remove
+                    All</button>
+            </h4>
+        </form>
+        <ul style="padding: 0; margin: 0;">
             {% for course in user_courses %}
-            <li>
-                <span>{{ course.course_code }}</span>
-                <span>{{ course.course_name }}</span>
-                <span>{{ course.course_au }}</span>
-                <!-- Delete button form -->
-                <form action="{{ url_for('delete_course', course_code=course.course_code) }}" method="POST">
-                    <input type="hidden" name="course_code" value="{{ course.course_code }}">
-                    <button type="submit">Remove</button>
-                </form>
+            <li class="course-li">
+                <div class="courselist">
+                    <b>{{ course.course_code }} ({{ course.course_au }}) <br>
+                        <div style="font-size: 12px;">{{ course.course_name }}</div>
+                    </b>
+                    <!-- Delete button form -->
+                    <form action="{{ url_for('delete_course', course_code=course.course_code) }}" method="POST">
+                        <input type="hidden" name="course_code" value="{{ course.course_code }}">
+                        <!-- Source: https://icons.getbootstrap.com/icons/x-circle/ -->
+                        <button aria-label='delete item' type='submit' class="removebutton"
+                            style="width: 35px; height: 35px;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                                class="bi bi-x-circle" viewBox="0 0 16 16">
+                                <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16" />
+                                <path
+                                    d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708" />
+                            </svg>
+                        </button>
+                    </form>
+                </div>
             </li>
             {% endfor %}
         </ul>
     </div>
 
     <div>
-
         <div class="timetable-container">
-            <table id="timetable">
+            <div class="filters">
+                <div style="display: inline-block; text-align: left; padding-left:30px;">
+                    <form id="timeForm" style="display: inline-block;">
+                        <input type="radio" id="morning" name="time" value="morning">
+                        <label for="morning">Morning</label>
+                        <br>
+                        <input type="radio" id="afternoon" name="time" value="afternoon">
+                        <label for="afternoon">Afternoon</label>
+                    </form>
+                </div>
+                <div style="display: inline-block; text-align:center;">
+                    <label for="num_days" style="display: inline-block; margin: 0 auto;">Select number of days:</label>
+                    <select name="num_days" id="num_days" style="display: inline-block;">
+                        <option value="">Please select</option> <!-- Default unselected option -->
+                        {% for num in range(2, 6) %}
+                        <option value="{{ num }}">{{ num }}</option>
+                        {% endfor %}
+                    </select>
+                    <br>
+                    <input type="checkbox" id="ignorelec" name="lecture" style="display: inline-block;">
+                    <label for="ignorelec">Ignore Lectures</label>
+                </div>
+                <button id="automateBtn">
+                    Generate Timetables
+                </button>
+            </div>
+
+            <table id="timetable" cellspacing="1" width="100%" bordercolor="#E0E0E0" style="background-color:white">
                 <thead>
                     <tr>
-                        <th>Time</th>
+                        <th>TIME\DAY</th>
                         {% for day in ['MON', 'TUE', 'WED', 'THU', 'FRI'] %}
                         <th>{{ day }}</th>
                         {% endfor %}
@@ -89,20 +131,40 @@ Main
                 <tbody>
                     {% for time_slot in schedule %}
                     <tr>
-                        <td>{{ time_slot }}</td>
+                        <td style="width: 100px; text-align: center;">{{ time_slot }}</td>
                         {% for day in ['MON', 'TUE', 'WED', 'THU', 'FRI'] %}
-                        <td>
-                            {% set day_schedule = weekly_schedules.get(day, {}).get(time_slot, []) %}
-                            {% for class in day_schedule %}
-                            Type: {{ class['type'] }},
-                            Course Index: {{ class['index'] }},
-                            Group: {{ class['group'] }},
-                            Venue: {{ class['venue'] }},
-                            Remarks: {{ class.get('remarks', '') }}<br>
-                            {% endfor %}
-                            {% if day_schedule|length == 0 %}
-                            <!-- Empty cell for no class -->
+                        {% set day_schedule = weekly_schedules.get(day, {}).get(time_slot, []) %}
+                        {% set rowspan = 1 %}
+
+                        {% if day_schedule|length > 0 %}
+                        <td style="width: 300px; height: 40px; background-color: white;" rowspan="{{ rowspan }}">
+                            {% else %}
+                        <td style="width: 300px; height: 40px;" rowspan="{{ rowspan }}">
                             {% endif %}
+                            {% for class in day_schedule %}
+                            {{ class['course'] }} ({{ class['index'] }})<br>
+                            {{ class['type'] }}
+                            <div class="tooltip" style="color: black;">
+                                ...
+                                <span class="tooltiptext">
+                                    {% for course in user_courses %}
+                                    {% if course.course_code == class['course'] %}
+                                    <div style="width: 120px; word-wrap: break-word;">{{ course.course_name }}</div>
+                                    {% endif %}
+                                    {% endfor %}
+                                    {{ class['course'] }}<br>
+                                    {{ class['type'] }}<br>
+                                    Index: {{ class['index'] }}<br>
+                                    Group: {{ class['group'] }}<br>
+                                    Venue: {{ class['venue'] }}<br>
+                                    {{ class.get('remarks', '') }}<br>
+                                    {% if day_schedule|length == 0 %}
+                                    <!-- Empty cell for no class -->
+                                    {% endif %}
+                                </span>
+                            </div>
+                            <br>
+                            {% endfor %}
                         </td>
                         {% endfor %}
                     </tr>
@@ -112,105 +174,157 @@ Main
         </div>
 
     </div>
+</div>
 
-    {% endblock %}
+{% endblock %}
 
-    {% block scripts %}
-    <script type="text/javascript">
-        // Ready is a function to only run the code after form is submitted
-        $(document).ready(function () {
-            $('#courseForm').on('submit', function (e) { // Listens for a form id courseForm to be submitted
-                e.preventDefault(); // pass the form to ajax
+{% block scripts %}
+<script type="text/javascript">
+    // Ready is a function to only run the code after form is submitted
+    $(document).ready(function () {
+        $('#courseForm').on('submit', function (e) { // Listens for a form id courseForm to be submitted
+            e.preventDefault(); // pass the form to ajax
 
-                $.ajax({    // A http method without the need to reload the page
-                    url: 'main',
-                    type: 'POST',
-                    data: $(this).serialize(),
-                    success: function (response) {
-                        if (response.status === 'error') {
-                            showModal(response.message);
-                        }
-                        if (response.status === 'success') {
-                            location.reload();
-                            //$('ul').append('<li>' + response.new_course + '</li>');
-                            //$('#courseForm input[name="course_code"]').val('');
-                        }
-                    },
-                    error: function (error) {
-                        console.log(error);
+            $.ajax({    // A http method without the need to reload the page
+                url: 'main',
+                type: 'POST',
+                data: $(this).serialize(),
+                success: function (response) {
+                    if (response.status === 'error') {
+                        showModal(response.message);
                     }
-                });
-            });
-        });
-
-    </script>
-
-    <script>
-        document.getElementById("timeForm").addEventListener("change", function () {
-            const selectedTime = document.querySelector('input[name="time"]:checked').value;
-            fetch("/set_time_preference", {
-                method: "POST",
-                body: JSON.stringify({ time: selectedTime }),
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            })
-                .then(response => response.json())
-                .then(data => console.log(data))
-                .catch((error) => {
-                    console.error('Error:', error);
-                });
-        });
-    </script>
-
-    <script type="text/javascript">
-        $(document).ready(function () {
-            $('#num_days').change(function () {
-                var selectedDays = $(this).val();
-                $.ajax({
-                    url: "{{ url_for('set_day_preference') }}", // Flask route that handles the AJAX request
-                    type: 'POST',
-                    contentType: 'application/json',
-                    data: JSON.stringify({ num_days: selectedDays }),
-                    dataType: 'json',
-                    success: function (response) {
-                        // Handle response here
-                        console.log(response);
-                        // Optionally, update the UI based on the response
-                    },
-                    error: function (error) {
-                        console.error("Error:", error);
-                    }
-                });
-            });
-        });
-    </script>
-
-    <script>
-        $(document).ready(function(){
-            $("#automateBtn").click(function(){
-                // Show the overlay
-                $("#overlay").fadeIn(300);
-        
-                // Start the AJAX call to your Flask route
-                $.ajax({
-                    url: "{{ url_for('automate_timetable') }}", // Adjust with your route's name
-                    type: 'GET', // or 'POST', depending on your route
-                    success: function(response) {
-                        // Process the response here
+                    if (response.status === 'success') {
                         location.reload();
-                        // Hide the overlay once the call is successful
-                        $("#overlay").fadeOut(300);
-                    },
-                    error: function(xhr, status, error) {
-                        // Handle errors here, such as showing an error message
-                        console.error("Error: " + error);
-                        alert("Fail to automate")
-                        $("#overlay").fadeOut(300);
+                        //$('ul').append('<li>' + response.new_course + '</li>');
+                        //$('#courseForm input[name="course_code"]').val('');
                     }
-                });
+                },
+                error: function (error) {
+                    console.log(error);
+                }
             });
         });
-        </script>
+    });
+
+</script>
+
+<script>
+    document.getElementById("timeForm").addEventListener("change", function () {
+        const selectedTime = document.querySelector('input[name="time"]:checked').value;
+        fetch("/set_time_preference", {
+            method: "POST",
+            body: JSON.stringify({ time: selectedTime }),
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        })
+            .then(response => response.json())
+            .then(data => console.log(data))
+            .catch((error) => {
+                console.error('Error:', error);
+            });
+    });
+</script>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('#num_days').change(function () {
+            var selectedDays = $(this).val();
+            $.ajax({
+                url: "{{ url_for('set_day_preference') }}", // Flask route that handles the AJAX request
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ num_days: selectedDays }),
+                dataType: 'json',
+                success: function (response) {
+                    // Handle response here
+                    console.log(response);
+                    // Optionally, update the UI based on the response
+                },
+                error: function (error) {
+                    console.error("Error:", error);
+                }
+            });
+        });
+    });
+</script>
+
+<script>
+    $(document).ready(function () {
+        $("#automateBtn").click(function () {
+            // Show the overlay
+            $("#overlay").fadeIn(300);
+
+            // Start the AJAX call to your Flask route
+            $.ajax({
+                url: "{{ url_for('automate_timetable') }}", // Adjust with your route's name
+                type: 'GET', // or 'POST', depending on your route
+                success: function (response) {
+                    // Process the response here
+                    location.reload();
+                    // Hide the overlay once the call is successful
+                    $("#overlay").fadeOut(300);
+                },
+                error: function (xhr, status, error) {
+                    // Handle errors here, such as showing an error message
+                    console.error("Error: " + error);
+                    alert("Fail to automate")
+                    $("#overlay").fadeOut(300);
+                }
+            });
+        });
+    });
+</script>
+
+<!-- The plan is to detect the contents above and below the current cell after the DOM loads-->
+<!-- So that we can dynamically reassign the rowspan based on its contents -->
+<!-- But this might be more trouble than its worth AND its not mentioned in the SRS so maybe its fine -->
+<!-- to not merge all the consecutive timelots... -->
+<script>
+    // Function to get content of cell above
+    function getContentAbove(cell) {
+        var currentCell = cell;
+        var row = currentCell.parentNode.rowIndex;
+        var column = currentCell.cellIndex;
+        var table = document.getElementById("timetable");
+
+        if (row > 0) { // Check if not in the first row
+            var contentAbove = table.rows[row - 1].cells[column].innerHTML;
+            alert("Content above: " + contentAbove);
+        } else {
+            alert("No cell above.");
+        }
+    }
+
+    function getContentBelow(cell) {
+        var currentCell = cell;
+        var row = currentCell.parentNode.rowIndex;
+        var column = currentCell.cellIndex;
+        var table = document.getElementById("timetable");
+
+        if (row > 0) { // Check if not in the first row
+            var contentAbove = table.rows[row + 1].cells[column].innerHTML;
+            alert("Content below: " + contentAbove);
+        } else {
+            alert("No cell above.");
+        }
+    }
+
+    // Function to assign event handlers to all cells
+    function assignEventHandlers() {
+        var cells = document.getElementsByTagName("td");
+        for (var i = 0; i < cells.length; i++) {
+            cells[i].onclick = function () {
+                getContentAbove(this);
+                getContentBelow(this);
+            };
+        }
+    }
+
+    // Execute the function after the DOM is loaded
+
+    // UNCOMMENT THIS TO SHOW CONTENTS ABOVE AND BELOW A CELL WHEN CLICKING ON IT
+    //document.addEventListener("DOMContentLoaded", assignEventHandlers);
+</script>
 
 {% endblock %}
