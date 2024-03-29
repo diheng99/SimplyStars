@@ -45,7 +45,10 @@ def get_automated_schedule(user_id, time_preference, day_preference):
                 populate_schedule(current_index, weekly_schedule_types, user_id, course_code)
                 result = True
                 break
-    
+            
+        if result == False:
+            return weekly_schedule_types, result        
+        
     return weekly_schedule_types, result
 
 def clash_free(current_index, weekly_schedule, user_id, course_code):
