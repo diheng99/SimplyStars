@@ -9,10 +9,12 @@ from SimplyStars.gmailAPI import send_email, generate_otp, SCOPES, filePathCred
 from flask import render_template, redirect, request, url_for, jsonify, session, flash
 from SimplyStars.forms import LoginForm, RegisterForm, CourseCodeForm, forgetPasswordForm, OTPForm, changePasswordForm
 from SimplyStars.models import User, db, CourseCode, CourseSchedule
-from flask_login import login_user, current_user
+from flask_login import login_user, current_user, logout_user
 from SimplyStars.functions import html_to_json, generate_time_slots, get_schedule, get_coursename_au
 from SimplyStars.automate import get_automated_schedule
 import json, traceback
+
+login_attempts = {}
 
 @app.route('/')
 @app.route('/home', methods=['GET']) # GET method -> Browser requests for a html file
@@ -42,16 +44,30 @@ def home_page():
 def login_page():
     form = LoginForm()
     
-    if form.validate_on_submit():
-        user = User.query.filter_by(username=form.username.data).first() #First record found
-        if user and user.check_password_correction(form.password.data):
-            login_user(user) # calls the load_user method and store the user'id session
-            
-            return redirect(url_for('main_page'))
+    if request.method == 'POST':
+        username = form.username.data
+        if username not in login_attempts:
+            login_attempts[username] = 0
+        if form.validate_on_submit():
+            if login_attempts[username] >= 3:
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return jsonify({'success': False, 'error': 'Exceed Login Attempts'})
+            user = User.query.filter_by(username=form.username.data).first() #First record found
+            if user and user.check_password_correction(form.password.data):
+                login_attempts[username] = 0
+                login_user(user) # calls the load_user method and store the user'id session
+                return redirect(url_for('main_page'))
+            else:
+                login_attempts[username] += 1
         else:
             return jsonify({'success':False, 'error': 'Invalid username or password'})
     
     return render_template('login.html', form = form)
+
+@app.route('/logout', methods=['GET','POST'])
+def logout():
+    logout_user()
+    return redirect(url_for('home_page'))
 
 @app.route('/register', methods=['GET', 'POST'])
 def register_page():
@@ -153,6 +169,7 @@ def change_password():
         user.password = form.password.data
         db.session.commit()
         session.pop('user_data', None)
+        login_attempts[user] = 0
         return redirect(url_for('login_page'))
             
     
@@ -260,7 +277,7 @@ def delete_course(course_code):
         return redirect(url_for('main_page'))
         
     if session.get('timetable_mode') == 'automated' and coursecode:
-        automated_results = get_automated_schedule(current_user.id, session.get('time_preference'), session.get('day_preference'))
+        automated_results = get_automated_schedule(current_user.id, session.get('time_preference'))
         session['weekly_schedules'] = json.dumps(automated_results[0])
 
     return redirect(url_for('main_page'))
@@ -274,7 +291,7 @@ def delete():
             db.session.query(CourseCode).delete()
             db.session.query(CourseSchedule).delete()
             db.session.commit()
-            automated_results = get_automated_schedule(current_user.id, session.get('time_preference'), session.get('day_preference'))
+            automated_results = get_automated_schedule(current_user.id, session.get('time_preference'))
             session['weekly_schedules'] = json.dumps(automated_results[0])
             
             return redirect(url_for(main_page))
@@ -298,32 +315,22 @@ def set_time_preference():
 
     return jsonify({"message": "Time preference received"}), 200
 
-@app.route('/set_day_preference', methods=['POST'])
-def set_day_preference():
-    data = request.get_json()
-    day_preference = data['num_days']
-    session['day_preference'] = day_preference
-    
-    return jsonify({"message": "Selection updated", "selectedDays": day_preference})
-
 @app.route('/automate_timetable', methods=['GET'])
 def automate_timetable():
     coursecode = CourseCode.query.filter_by(user=current_user.id).all()
     if not coursecode:
-
-        return jsonify({'status': 'error', 'message': 'Automation unsuccessfully'})
+        print('hi')
+        return jsonify({'status': 'error', 'message': 'No Course Added'})
     
     time_preference = session.get('time_preference')
-    day_preference = session.get('day_preference')
     
     if not time_preference:
         return jsonify({'status': 'error', 'message': 'No preference selected'})
 
     session['timetable_mode'] = 'automated'
 
-    automated_results = get_automated_schedule(current_user.id, time_preference, day_preference)
+    automated_results = get_automated_schedule(current_user.id, time_preference)
     session['weekly_schedules'] = json.dumps(automated_results[0])
-    print(automated_results[0])
     if automated_results[1] == False:
         session['timetable_mode'] = 'default'
         del session['weekly_schedules']

@@ -13,7 +13,7 @@ def generate_time_slots(start_time, end_time, interval):
         current_time = (current_time + timedelta(hours=1)).replace(minute=current_time.minute)
     return time_slots
 
-def get_automated_schedule(user_id, time_preference, day_preference):
+def get_automated_schedule(user_id, time_preference):
     
     result = None
     session['time_preference'] = time_preference

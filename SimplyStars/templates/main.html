@@ -6,6 +6,7 @@
 <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
 <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css')}}">
 <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 {% endblock %}
 
 {% block title %}
@@ -20,7 +21,7 @@ Main
     <img src="https://t.ly/Q54qQ" style="width:70px; margin-left:20px">
     <div class="welcome-bar">Welcome to SimplyStars!</div>
     <div class="help-button">Help</div>
-    <button class="logout-button">Logout</button>
+    <button id="logout-button" class="logout-button" onclick="logoutUser()">Logout</button>
 </div>
 
 
@@ -103,16 +104,6 @@ Main
                     </form>
                 </div>
                 <div style="display: inline-block; text-align:center;">
-                    <label for="num_days" style="display: inline-block; margin: 0 auto;">Select number of days:</label>
-                    <select name="num_days" id="num_days" style="display: inline-block;">
-                        <option value="">Please select</option> <!-- Default unselected option -->
-                        {% for num in range(2, 6) %}
-                        <option value="{{ num }}">{{ num }}</option>
-                        {% endfor %}
-                    </select>
-                    <br>
-                    <input type="checkbox" id="ignorelec" name="lecture" style="display: inline-block;">
-                    <label for="ignorelec">Ignore Lectures</label>
                 </div>
                 <button id="automateBtn">
                     Generate Timetables
@@ -131,40 +122,20 @@ Main
                 <tbody>
                     {% for time_slot in schedule %}
                     <tr>
-                        <td style="width: 100px; text-align: center;">{{ time_slot }}</td>
+                        <td>{{ time_slot }}</td>
                         {% for day in ['MON', 'TUE', 'WED', 'THU', 'FRI'] %}
-                        {% set day_schedule = weekly_schedules.get(day, {}).get(time_slot, []) %}
-                        {% set rowspan = 1 %}
-
-                        {% if day_schedule|length > 0 %}
-                        <td style="width: 300px; height: 40px; background-color: white;" rowspan="{{ rowspan }}">
-                            {% else %}
-                        <td style="width: 300px; height: 40px;" rowspan="{{ rowspan }}">
-                            {% endif %}
+                        <td>
+                            {% set day_schedule = weekly_schedules.get(day, {}).get(time_slot, []) %}
                             {% for class in day_schedule %}
-                            {{ class['course'] }} ({{ class['index'] }})<br>
-                            {{ class['type'] }}
-                            <div class="tooltip" style="color: black;">
-                                ...
-                                <span class="tooltiptext">
-                                    {% for course in user_courses %}
-                                    {% if course.course_code == class['course'] %}
-                                    <div style="width: 120px; word-wrap: break-word;">{{ course.course_name }}</div>
-                                    {% endif %}
-                                    {% endfor %}
-                                    {{ class['course'] }}<br>
-                                    {{ class['type'] }}<br>
-                                    Index: {{ class['index'] }}<br>
-                                    Group: {{ class['group'] }}<br>
-                                    Venue: {{ class['venue'] }}<br>
-                                    {{ class.get('remarks', '') }}<br>
-                                    {% if day_schedule|length == 0 %}
-                                    <!-- Empty cell for no class -->
-                                    {% endif %}
-                                </span>
-                            </div>
-                            <br>
+                            Type: {{ class['type'] }},
+                            Course Index: {{ class['index'] }},
+                            Group: {{ class['group'] }},
+                            Venue: {{ class['venue'] }},
+                            Remarks: {{ class.get('remarks', '') }}<br>
                             {% endfor %}
+                            {% if day_schedule|length == 0 %}
+                            <!-- Empty cell for no class -->
+                            {% endif %}
                         </td>
                         {% endfor %}
                     </tr>
@@ -175,6 +146,47 @@ Main
 
     </div>
 </div>
+
+<!-- Error Modal for No Course Code -->
+<div class="modal" id="noCourseModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Error</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <p>No course has been added. Please add a course before automating the timetable.</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" data-dismiss="modal">OK</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Error Modal for No Time Preference -->
+  <div class="modal" id="noPreferenceModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Error</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <p>No time preference selected. Please select your time preference.</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" data-dismiss="modal">OK</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
 
 {% endblock %}
 
@@ -226,54 +238,44 @@ Main
     });
 </script>
 
-<script type="text/javascript">
-    $(document).ready(function () {
-        $('#num_days').change(function () {
-            var selectedDays = $(this).val();
-            $.ajax({
-                url: "{{ url_for('set_day_preference') }}", // Flask route that handles the AJAX request
-                type: 'POST',
-                contentType: 'application/json',
-                data: JSON.stringify({ num_days: selectedDays }),
-                dataType: 'json',
-                success: function (response) {
-                    // Handle response here
-                    console.log(response);
-                    // Optionally, update the UI based on the response
-                },
-                error: function (error) {
-                    console.error("Error:", error);
-                }
-            });
-        });
-    });
-</script>
-
 <script>
     $(document).ready(function () {
         $("#automateBtn").click(function () {
             // Show the overlay
             $("#overlay").fadeIn(300);
-
+    
             // Start the AJAX call to your Flask route
             $.ajax({
-                url: "{{ url_for('automate_timetable') }}", // Adjust with your route's name
-                type: 'GET', // or 'POST', depending on your route
+                url: "{{ url_for('automate_timetable') }}",
+                type: 'GET',
                 success: function (response) {
-                    // Process the response here
-                    location.reload();
-                    // Hide the overlay once the call is successful
-                    $("#overlay").fadeOut(300);
+                    $("#overlay").fadeOut(300); // Move the overlay fade out to inside the callbacks
+                    if (response.status === 'error') {
+                        // Match the error message exactly as sent from the backend
+                        if (response.message === 'No Course Added') {
+                            $("#noCourseModal").modal('show');
+                        } else if (response.message === 'No preference selected') {
+                            $("#noPreferenceModal").modal('show');
+                        }
+                    } else {
+                        location.reload();
+                    }
                 },
                 error: function (xhr, status, error) {
-                    // Handle errors here, such as showing an error message
-                    console.error("Error: " + error);
-                    alert("Fail to automate")
+                    // Correctly reference the message in the xhr response
                     $("#overlay").fadeOut(300);
+                    var errorMsg = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : "Unknown error";
+                    if (errorMsg === 'No Course Added') {
+                        $("#noCourseModal").modal('show');
+                    } else {
+                        // Handle other errors or show a generic error modal
+                        alert("Error: " + errorMsg);
+                    }
                 }
             });
         });
     });
+    
 </script>
 
 <!-- The plan is to detect the contents above and below the current cell after the DOM loads-->
@@ -327,4 +329,24 @@ Main
     //document.addEventListener("DOMContentLoaded", assignEventHandlers);
 </script>
 
+<script>
+    function logoutUser() {
+        // Using Fetch API to send a POST request
+        fetch('/logout', {
+            method: 'POST',
+            credentials: 'same-origin', // Include cookies
+            headers: {
+                'Content-Type': 'application/json',
+                // Add CSRF token as required for POST requests
+            }
+        }).then(response => {
+            if(response.ok) {
+                window.location.href = '/'; // Redirect to home on success
+            } else {
+                // Handle errors
+                console.error('Logout failed.');
+            }
+        });
+    }
+    </script>
 {% endblock %}
