@@ -43,26 +43,29 @@ def home_page():
 @app.route('/login', methods=['GET', 'POST'])
 def login_page():
     form = LoginForm()
-    
-    if request.method == 'POST':
+    if request.method == 'POST' and form.validate_on_submit():
         username = form.username.data
+
+        # Initialize login_attempts for the user if not already done
         if username not in login_attempts:
             login_attempts[username] = 0
-        if form.validate_on_submit():
-            if login_attempts[username] >= 3:
-                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                    return jsonify({'success': False, 'error': 'Exceed Login Attempts'})
-            user = User.query.filter_by(username=form.username.data).first() #First record found
-            if user and user.check_password_correction(form.password.data):
-                login_attempts[username] = 0
-                login_user(user) # calls the load_user method and store the user'id session
-                return redirect(url_for('main_page'))
-            else:
-                login_attempts[username] += 1
+
+        # Check for exceeded login attempts
+        if login_attempts[username] >= 3:
+            return jsonify({'success': False, 'error': 'Exceed Login Attempts! Please reset password'})
+
+        # Check user credentials
+        user = User.query.filter_by(username=username).first()  # First record found
+        if user and user.check_password_correction(form.password.data):
+            login_attempts[username] = 0  # Reset login attempts on successful login
+            login_user(user)  # Log in the user
+            return jsonify({'success': True})  # Redirect handled by AJAX
         else:
-            return jsonify({'success':False, 'error': 'Invalid username or password'})
-    
-    return render_template('login.html', form = form)
+            login_attempts[username] += 1
+            return jsonify({'success': False, 'error': 'Invalid username or password'})
+
+    # For GET or failed POST requests
+    return render_template('login.html', form=form)
 
 @app.route('/logout', methods=['GET','POST'])
 def logout():
@@ -87,11 +90,7 @@ def register_page():
         send_email(form.email_address.data, otp)
         return redirect(url_for('otp_verification'))
     
-    else:
-        session['error_message'] = "Invalid Email or Unmatched password"
-
-    error_message = session.pop('error_message', None)
-    return render_template('register.html', form=form, error_message = error_message)
+    return render_template('register.html', form=form)
 
 @app.route('/otp_verification', methods=['GET', 'POST'])
 def otp_verification():
@@ -151,12 +150,12 @@ def otp_reset_verify():
             # You may want to remove the OTP from the session after successful verification
             del session['user_data']['otp']
                 
-            return redirect(url_for('change_password'))  # Redirect to a success page or next step
-        
+            return jsonify({'success': True, 'redirect_url': url_for('change_password')})
         else:
-            # OTP is incorrect, show an error message
-            flash('Invalid OTP. Please try again.', 'error')
+            # OTP is incorrect, return an error in JSON format
+            return jsonify({'success': False, 'error': 'Invalid OTP. Please try again.'}), 400
 
+    # For a GET request or if form validation fails
     return render_template('otp_reset_verify.html', form=form)
 
 @app.route('/change_password', methods=['GET','POST'])

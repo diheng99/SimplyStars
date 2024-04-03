@@ -2,12 +2,14 @@
 
 {% block title %}
 Login Page
-<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
 {% endblock %}
 
 {% block content %}
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
 <div class="container text-center">
-    <h2 class="welcome-header" style="color: aquamarine;">You are 1 step away from using SimplyStars! Login</h2>
+    <div id="loginError" class="alert alert-danger" style="display: none;"></div>
+
+    <h2 class="welcome-header" style="color: aquamarine;">Login to use SimplyStars</h2>
     <br>
 
     <form id="loginForm" method="POST" class="text-left" style="width: 50%; margin: 0 auto;">
@@ -35,29 +37,6 @@ Login Page
             <a class="btn btn-sm btn-secondary" href="{{ url_for('forgetPassword_page') }}">Forgot Password</a>
         </div>
     </form>
-
-    <!-- Password Reset Modal -->
-    <div class="modal fade" id="passwordResetModal" tabindex="-1" role="dialog"
-        aria-labelledby="passwordResetModalLabel" aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="passwordResetModalLabel">Reset Password Required</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    You have exceeded the maximum login attempts. Please reset your password.
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                    <a href="/forgetPassword" class="btn btn-primary">Reset Password</a>
-                </div>
-            </div>
-        </div>
-    </div>
-
 </div>
 {% endblock %}
 
@@ -75,24 +54,25 @@ Login Page
                 url: "{{ url_for('login_page') }}",
                 data: $(this).serialize(),
                 dataType: 'json', // Expect a JSON response
-                beforeSend: function(xhr) {
+                beforeSend: function (xhr) {
                     xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
                 },
                 success: function (response) {
-                    // If the login is successful, redirect to the main page
                     if (response.success) {
-                        window.location.href = "{{ url_for('main_page') }}";
+                        window.location.href = "{{ url_for('main_page') }}"; // Redirect on success
                     } else {
-                        // If there is an error, check the error message
-                        if (response.error === "Exceed Login Attempts") {
-                            // Show the password reset modal
-                            $('#passwordResetModal').modal('show');
+                        // Check for exceeded login attempts error
+                        if (response.error === "Login attempts exceeded. Please reset your password.") {
+                            // Show a different message or modal for exceeded login attempts
+                            // For demonstration, using the loginError div to show the message
+                            $('#loginError').html(response.error).show();
                         } else {
-                            // Handle other errors, perhaps display them in a div above the form
+                            // Handle other errors
                             $('#loginError').text(response.error).show();
                         }
                     }
                 },
+
                 error: function (xhr, status, error) {
                     // Handle any other errors
                     $('#loginError').text("An error occurred while attempting to log in.").show();
@@ -101,6 +81,5 @@ Login Page
         });
     });
 </script>
-
 
 {% endblock %}

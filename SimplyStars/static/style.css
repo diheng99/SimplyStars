@@ -1,3 +1,46 @@
+/* Style for form labels */
+.form-group label {
+    color: #333; /* Choose a color that fits your design */
+    font-weight: bold; /* Bold font for the labels */
+    font-size: 16px; /* Choose an appropriate font size */
+    margin-bottom: 0.5rem; /* Spacing below the label for separation */
+    display: block; /* Display block for full width */
+}
+
+/* Style improvements for input fields */
+.form-control {
+    border: 1px solid #ced4da; /* Subtle border color */
+    border-radius: 0.25rem; /* Slightly rounded borders for modern look */
+    font-size: 16px; /* Uniform font size with label */
+    line-height: 1.5; /* Comfortable line height for readability */
+    padding: 0.375rem 0.75rem; /* Balanced padding */
+}
+
+/* Optional: Style for focus on input fields */
+.form-control:focus {
+    border-color: #80bdff; /* Border color on focus */
+    outline: 0; /* Remove default focus outline */
+    box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25); /* Add a subtle glow effect */
+}
+
+/* Style for the login button */
+.btn.btn-secondary {
+    font-size: 16px; /* Match font size with form controls */
+    font-weight: 400; /* Normal font weight for button */
+    color: #fff; /* Text color */
+    background-color: #6c757d; /* Background color */
+    border-color: #6c757d; /* Border color */
+    padding: 0.375rem 0.75rem; /* Padding similar to input fields */
+    border-radius: 0.25rem; /* Rounded corners */
+    transition: background-color 0.15s ease-in-out; /* Smooth transition for hover effect */
+}
+
+/* Hover effect for button */
+.btn.btn-secondary:hover {
+    background-color: #5a6268; /* Slightly darker on hover */
+    border-color: #545b62;
+}
+
 .top-bar {
     background-color: #7C7C7C; 
     height: 80px; 
