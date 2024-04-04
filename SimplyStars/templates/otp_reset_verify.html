@@ -33,7 +33,7 @@ Verify OTP
     <div class="otp-verification-container">
         <h2>Enter your 6-digit OTP now:</h2>
         <div id="otpError" class="alert alert-danger" style="display: none;"></div>
-        <form method="POST" action="{{ url_for('otp_reset_verify') }}">
+        <form method="POST" action="{{ url_for('AccountController.otp_reset_verify') }}">
             {{ form.hidden_tag() }}
             
             <!-- Hidden input field for the concatenated OTP -->

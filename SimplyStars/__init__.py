@@ -24,7 +24,7 @@ migrate = Migrate(app, db)
 bcrypt = Bcrypt(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
-login_manager.login_view = 'login_page'
+login_manager.login_view = 'AccountController.login_page'
 
 # Import the models before creating the database
 from SimplyStars.models import*

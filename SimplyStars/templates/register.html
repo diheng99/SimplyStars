@@ -12,7 +12,7 @@ Register
             {% for message in get_flashed_messages(category_filter=["error"]) %}
                 <div class="alert alert-danger">{{ message }}</div>
             {% endfor %}
-            <form method="POST" action="{{ url_for('register_page') }}">
+            <form method="POST" action="{{ url_for('AccountController.register_page') }}">
                 {{ form.hidden_tag() }}
                 <div class="form-group mb-4">
                     <label for="{{ form.username.id }}">Enter your username:</label>
@@ -53,7 +53,7 @@ Register
                 <button type="submit" class="btn btn-sm btn-secondary mt-3">Sign Up</button>
                 <div class="mt-3">
                     <h6>Already have an account?</h6>
-                    <a class="btn btn-sm btn-secondary" href="{{ url_for('login_page') }}">Login</a>
+                    <a class="btn btn-sm btn-secondary" href="{{ url_for('AccountController.login_page') }}">Login</a>
                 </div>
             </form>
         </div>

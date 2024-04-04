@@ -207,8 +207,7 @@ Main
                     }
                     if (response.status === 'success') {
                         location.reload();
-                        //$('ul').append('<li>' + response.new_course + '</li>');
-                        //$('#courseForm input[name="course_code"]').val('');
+
                     }
                 },
                 error: function (error) {
@@ -341,7 +340,7 @@ Main
             }
         }).then(response => {
             if(response.ok) {
-                window.location.href = '/'; // Redirect to home on success
+                window.location.href = '/login'; // Redirect to home on success
             } else {
                 // Handle errors
                 console.error('Logout failed.');

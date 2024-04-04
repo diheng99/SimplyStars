@@ -29,12 +29,12 @@ Login Page
 
         <div class="mt-4">
             <h6>Don't have an account?</h6>
-            <a class="btn btn-sm btn-secondary" href="{{ url_for('register_page') }}">Register</a>
+            <a class="btn btn-sm btn-secondary" href="{{ url_for('AccountController.register_page') }}">Register</a>
         </div>
 
         <div class="mt-2">
             <h6>Forgot your password?</h6>
-            <a class="btn btn-sm btn-secondary" href="{{ url_for('forgetPassword_page') }}">Forgot Password</a>
+            <a class="btn btn-sm btn-secondary" href="{{ url_for('AccountController.forgetPassword_page') }}">Forgot Password</a>
         </div>
     </form>
 </div>
@@ -51,7 +51,7 @@ Login Page
             // Start the AJAX call to the Flask login route
             $.ajax({
                 type: 'POST',
-                url: "{{ url_for('login_page') }}",
+                url: "{{ url_for('AccountController.login_page') }}",
                 data: $(this).serialize(),
                 dataType: 'json', // Expect a JSON response
                 beforeSend: function (xhr) {

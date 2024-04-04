@@ -91,7 +91,7 @@ class AutomatedSchedulingStrategy(SchedulingStrategy):
         return weekly_schedule_types, True
 
 class DefaultSchedulingStrategy(SchedulingStrategy):
-    def generate_schedule(self, user_id, preferences):
+    def generate_schedule(self, user_id):
         
         def clash_free(current_index, weekly_schedule, user_id, course_code):
             index_details = CourseSchedule.query.filter_by(user_id=user_id,
