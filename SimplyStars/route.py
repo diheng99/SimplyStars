@@ -13,6 +13,7 @@ from flask_login import login_user, current_user, logout_user
 from SimplyStars.functions import html_to_json, generate_time_slots, get_schedule, get_coursename_au
 from SimplyStars.automate import get_automated_schedule
 import json, traceback
+from SimplyStars.AutomationController import AutomatedSchedulingStrategy, DefaultSchedulingStrategy, SchedulerContext
 
 login_attempts = {}
 
@@ -316,24 +317,25 @@ def set_time_preference():
 
 @app.route('/automate_timetable', methods=['GET'])
 def automate_timetable():
-    coursecode = CourseCode.query.filter_by(user=current_user.id).all()
-    if not coursecode:
-        print('hi')
-        return jsonify({'status': 'error', 'message': 'No Course Added'})
-    
-    time_preference = session.get('time_preference')
-    
-    if not time_preference:
+    user_id = current_user.id
+    preferences = session.get('time_preference')
+    if not preferences:
         return jsonify({'status': 'error', 'message': 'No preference selected'})
+    
+    if preferences:
+        strategy = AutomatedSchedulingStrategy()
+    else:
+        strategy = DefaultSchedulingStrategy()
+    
+    scheduler = SchedulerContext(strategy)
+    schedule_result = scheduler.generate_schedule(user_id, preferences)
 
-    session['timetable_mode'] = 'automated'
-
-    automated_results = get_automated_schedule(current_user.id, time_preference)
-    session['weekly_schedules'] = json.dumps(automated_results[0])
-    if automated_results[1] == False:
+    if not schedule_result[1]:
         session['timetable_mode'] = 'default'
         del session['weekly_schedules']
         return jsonify({'status': 'error', 'message': 'Automation unsuccessfully'})
     else:
-        
+        session['timetable_mode'] = 'automated'
+        session['weekly_schedules'] = json.dumps(schedule_result[0])
         return jsonify({'status': 'success', 'message': 'Automation completed successfully'})
+
