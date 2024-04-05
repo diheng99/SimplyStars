@@ -5,17 +5,23 @@
 import requests
 from SimplyStars import app
 from google_auth_oauthlib.flow import InstalledAppFlow
-from SimplyStars.gmailAPI import SCOPES, filePathCred
-from flask import render_template, redirect, request, url_for, jsonify, session
-from SimplyStars.forms import CourseCodeForm
-from SimplyStars.models import User, db, CourseCode, CourseSchedule
-from flask_login import login_user, current_user, logout_user
-from SimplyStars.functions import html_to_json, generate_time_slots, get_schedule, get_coursename_au
-import json, traceback
-from SimplyStars.AutomationController import AutomatedSchedulingStrategy, DefaultSchedulingStrategy, SchedulerContext
+from SimplyStars.NetworkController import SCOPES, filePathCred
+from flask import redirect, render_template, request, jsonify, session, json, url_for
+from SimplyStars.forms import CourseCodeForm, LoginForm
+from SimplyStars.models import CourseCode, User
+from flask_login import current_user, login_user, logout_user
+from SimplyStars.functions import generate_time_slots, get_schedule
+
+from SimplyStars.AutomationController import automation
 from SimplyStars.AccountController import accounts
+from SimplyStars.ScheduleController import schedules
+from SimplyStars.PreferenceController import preferences
 
 app.register_blueprint(accounts, url_prefix='/')
+app.register_blueprint(schedules, url_prefix='/')
+app.register_blueprint(automation, url_prefix='/')
+app.register_blueprint(preferences, url_prefix='/')
+
 login_attempts = {}
 
 @app.route('/')
@@ -45,7 +51,7 @@ def home_page():
 @app.route('/main', methods=['GET', 'POST'])
 def main_page():
     form = CourseCodeForm()
-    print(session.get('timetable_mode'))
+    session['time_preference'] = None
     if session.get('timetable_mode') == 'automated':
         weekly_schedules = json.loads(session.get('weekly_schedules'))
     else:
@@ -84,125 +90,34 @@ def main_page():
     user_courses = CourseCode.query.filter_by(user=current_user.id).all()
     return render_template('main.html', form=form, user_courses=user_courses, schedule=schedule, weekly_schedules=weekly_schedules)
 
-@app.route('/add_course_schedule', methods=['POST'])
-def add_course_schedule():
-    try:
-        data = request.json
+@app.route('/login', methods=['GET', 'POST'])
+def login_page():
+    form = LoginForm()
+    if request.method == 'POST' and form.validate_on_submit():
+        username = form.username.data
 
-        course_code, course_name, au_value = get_coursename_au(data['html_content'])
-        userId = data['user_id']
-        
-        course_code=CourseCode(course_code=course_code, course_name = course_name, course_au = au_value, user=userId)
-        db.session.add(course_code)
-        db.session.commit()
-        
-        json_data = json.loads(html_to_json(data['html_content']))
-        for index_data in json_data:
-            course_index = index_data.get('index')
-            for detail in index_data['details']:
-                course_detail = CourseSchedule(
-                    user_id=data['user_id'],  # Assuming this is sent in the request
-                    course_code=data['course_code'],  # Assuming this is sent in the request
-                    course_index=course_index,
-                    type=detail['type'],
-                    group=detail['group'],
-                    day=detail['day'],
-                    time=detail['time'],
-                    venue=detail['venue'],
-                    remark=detail['remark']
-                )
-                db.session.add(course_detail)
+        # Initialize login_attempts for the user if not already done
+        if username not in login_attempts:
+            login_attempts[username] = 0
 
-        db.session.commit()
-        
-        return jsonify({'status': 'success',
-                        'message': 'Course schedule added successfully.'})
+        # Check for exceeded login attempts
+        if login_attempts[username] >= 3:
+            return jsonify({'success': False, 'error': 'Exceed Login Attempts! Please reset password'})
 
-    except Exception as e:
-        db.session.rollback()
-        print(f"An error occurred: {e}")
-        traceback.print_exc()
-        return jsonify({'status': 'error',
-                        'message': 'An error occurred while adding the course schedule.'}), 500
+        # Check user credentials
+        user = User.query.filter_by(username=username).first()  # First record found
+        if user and user.check_password_correction(form.password.data):
+            login_attempts[username] = 0  # Reset login attempts on successful login
+            login_user(user)  # Log in the user
+            return jsonify({'success': True})  # Redirect handled by AJAX
+        else:
+            login_attempts[username] += 1
+            return jsonify({'success': False, 'error': 'Invalid username or password'})
 
-@app.route('/delete_course/<string:course_code>', methods=['POST'])
-def delete_course(course_code):
-    
-    course = CourseCode.query.filter_by(course_code=course_code, user=current_user.id).first()
-    db.session.delete(course)
-    db.session.commit()
-    
-    course_Schedule = CourseSchedule.query.filter_by(course_code=course_code, user_id=current_user.id).all()
-    for records in course_Schedule:
-        db.session.delete(records)
+    # For GET or failed POST requests
+    return render_template('login.html', form=form)
 
-    db.session.commit()
-    
-    coursecode = CourseCode.query.filter_by(user=current_user.id).all()
-    if not coursecode:
-        session['timetable_mode'] = 'default'
-        return redirect(url_for('main_page'))
-        
-    if session.get('timetable_mode') == 'automated' and coursecode:
-        strategy = DefaultSchedulingStrategy()
-        scheduler = SchedulerContext(strategy)
-        schedule_result = scheduler.generate_schedule(current_user.user_id)
-        session['weekly_schedules'] = json.dumps(schedule_result[0])
-
-    return redirect(url_for('main_page'))
-
-@app.route('/delete', methods=['POST'])
-def delete():
-    
-    if session['timetable_mode'] == 'automated':
-        try:
-            session['timetable_mode'] = 'default'
-            db.session.query(CourseCode).delete()
-            db.session.query(CourseSchedule).delete()
-            db.session.commit()
-            
-            return redirect(url_for(main_page))
-        except Exception as e:
-            db.session.rollback()
-    try:
-        db.session.query(CourseCode).delete()
-        db.session.query(CourseSchedule).delete()
-        db.session.commit()
-    except Exception as e:
-        db.session.rollback()
-        
-    return redirect(url_for('main_page'))
-
-@app.route('/set_time_preference', methods=['POST'])
-def set_time_preference():
-    data = request.json
-    time_preference = data.get('time')
-    session['time_preference'] = time_preference
-    
-
-    return jsonify({"message": "Time preference received"}), 200
-
-@app.route('/automate_timetable', methods=['GET'])
-def automate_timetable():
-    user_id = current_user.id
-    preferences = session.get('time_preference')
-    if not preferences:
-        return jsonify({'status': 'error', 'message': 'No preference selected'})
-    
-    if preferences:
-        strategy = AutomatedSchedulingStrategy()
-    else:
-        strategy = DefaultSchedulingStrategy()
-    
-    scheduler = SchedulerContext(strategy)
-    schedule_result = scheduler.generate_schedule(user_id, preferences)
-
-    if not schedule_result[1]:
-        session['timetable_mode'] = 'default'
-        del session['weekly_schedules']
-        return jsonify({'status': 'error', 'message': 'Automation unsuccessfully'})
-    else:
-        session['timetable_mode'] = 'automated'
-        session['weekly_schedules'] = json.dumps(schedule_result[0])
-        return jsonify({'status': 'success', 'message': 'Automation completed successfully'})
-
+@app.route('/logout', methods=['GET','POST'])
+def logout():
+    logout_user()
+    return redirect(url_for('login_page'))

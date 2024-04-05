@@ -1,43 +1,21 @@
-from flask import Blueprint, request, jsonify, render_template, redirect, url_for, session, flash
-from SimplyStars.forms import LoginForm, RegisterForm, forgetPasswordForm, changePasswordForm, OTPForm
+from flask import Blueprint, jsonify, render_template, redirect, url_for, session, flash
+from SimplyStars.forms import RegisterForm, forgetPasswordForm, changePasswordForm, OTPForm
 from SimplyStars.models import User, db
-from flask_login import login_user, logout_user
-from SimplyStars.gmailAPI import generate_otp, send_email
+from SimplyStars.NetworkController import generate_otp, send_email
 
 accounts = Blueprint('AccountController', __name__)
 login_attempts = {}
 
-@accounts.route('/login', methods=['GET', 'POST'])
-def login_page():
-    form = LoginForm()
-    if request.method == 'POST' and form.validate_on_submit():
-        username = form.username.data
+class UserFactory:
+    @staticmethod
+    def create_user(form_data):
 
-        # Initialize login_attempts for the user if not already done
-        if username not in login_attempts:
-            login_attempts[username] = 0
-
-        # Check for exceeded login attempts
-        if login_attempts[username] >= 3:
-            return jsonify({'success': False, 'error': 'Exceed Login Attempts! Please reset password'})
-
-        # Check user credentials
-        user = User.query.filter_by(username=username).first()  # First record found
-        if user and user.check_password_correction(form.password.data):
-            login_attempts[username] = 0  # Reset login attempts on successful login
-            login_user(user)  # Log in the user
-            return jsonify({'success': True})  # Redirect handled by AJAX
-        else:
-            login_attempts[username] += 1
-            return jsonify({'success': False, 'error': 'Invalid username or password'})
-
-    # For GET or failed POST requests
-    return render_template('login.html', form=form)
-
-@accounts.route('/logout', methods=['GET','POST'])
-def logout():
-    logout_user()
-    return redirect(url_for('AccountController.login_page'))
+        new_user = User(
+            username=form_data['username'],
+            email_address=form_data['email_address'],
+            password=form_data['password']  
+        )
+        return new_user
 
 @accounts.route('/register', methods=['GET', 'POST'])
 def register_page():
@@ -55,9 +33,35 @@ def register_page():
         }
         
         send_email(form.email_address.data, otp)
-        return redirect(url_for('otp_verification'))
+        return redirect(url_for('AccountController.otp_verification'))
     
     return render_template('register.html', form=form)
+
+@accounts.route('/otp_verification', methods=['GET', 'POST'])
+def otp_verification():
+    form = OTPForm()
+
+    if form.validate_on_submit():
+        user_otp = form.otp.data
+
+        # Check if the OTP matches
+        if 'temp_user_data' in session and session['temp_user_data'].get('otp') == user_otp:
+            # OTP is correct, proceed with user registration or next steps
+            # You may want to remove the OTP from the session after successful verification
+            session_temp_data = session.pop('temp_user_data')
+            
+            new_user = UserFactory.create_user(session_temp_data)
+
+            db.session.add(new_user)
+            db.session.commit()
+            
+            return redirect(url_for('login_page'))
+        
+        else:
+            # OTP is incorrect, show an error message
+            flash('Invalid OTP. Please try again.', 'error')
+
+    return render_template('otp_verification.html', form=form)
 
 @accounts.route('/forgetPassword', methods=['GET','POST'])
 def forgetPassword_page():
@@ -87,7 +91,7 @@ def change_password():
         db.session.commit()
         session.pop('user_data', None)
         login_attempts[user] = 0
-        return redirect(url_for('AccountController.login_page'))
+        return redirect(url_for('login_page'))
     
     return render_template('changePassword.html', form=form)
 
@@ -111,30 +115,3 @@ def otp_reset_verify():
 
     # For a GET request or if form validation fails
     return render_template('otp_reset_verify.html', form=form)
-
-@accounts.route('/otp_verification', methods=['GET', 'POST'])
-def otp_verification():
-    form = OTPForm()
-
-    if form.validate_on_submit():
-        user_otp = form.otp.data
-
-        # Check if the OTP matches
-        if 'temp_user_data' in session and session['temp_user_data'].get('otp') == user_otp:
-            # OTP is correct, proceed with user registration or next steps
-            # You may want to remove the OTP from the session after successful verification
-            del session['temp_user_data']['otp']
-            
-            new_user = User(username=session['temp_user_data'].get('username'),
-                            email_address=session['temp_user_data'].get('email_address'),
-                            password=session['temp_user_data'].get('password'))
-            db.session.add(new_user)
-            db.session.commit()
-            
-            return redirect(url_for('AccountController.login_page'))
-        
-        else:
-            # OTP is incorrect, show an error message
-            flash('Invalid OTP. Please try again.', 'error')
-
-    return render_template('otp_verification.html', form=form)

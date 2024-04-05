@@ -51,7 +51,7 @@ Login Page
             // Start the AJAX call to the Flask login route
             $.ajax({
                 type: 'POST',
-                url: "{{ url_for('AccountController.login_page') }}",
+                url: "{{ url_for('login_page') }}",
                 data: $(this).serialize(),
                 dataType: 'json', // Expect a JSON response
                 beforeSend: function (xhr) {

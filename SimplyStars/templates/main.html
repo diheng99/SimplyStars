@@ -72,7 +72,7 @@ Main
                         <div style="font-size: 12px;">{{ course.course_name }}</div>
                     </b>
                     <!-- Delete button form -->
-                    <form action="{{ url_for('delete_course', course_code=course.course_code) }}" method="POST">
+                    <form action="{{ url_for('ScheduleController.delete_course', course_code=course.course_code) }}" method="POST">
                         <input type="hidden" name="course_code" value="{{ course.course_code }}">
                         <!-- Source: https://icons.getbootstrap.com/icons/x-circle/ -->
                         <button aria-label='delete item' type='submit' class="removebutton"
@@ -186,38 +186,84 @@ Main
       </div>
     </div>
   </div>
-  
+
+<!-- Course Already Added Modal -->
+<div class="modal fade" id="courseAlreadyAddedModal" tabindex="-1" role="dialog" aria-labelledby="courseAlreadyAddedModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="courseAlreadyAddedModalLabel">Course Already Added</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                The course you are trying to add has already been added. Please add a different course.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Automation Unsuccessful Modal -->
+<div class="modal fade" id="automationUnsuccessfulModal" tabindex="-1" role="dialog" aria-labelledby="automationUnsuccessfulModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="automationUnsuccessfulModalLabel">Automation Unsuccessful</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          Automation was unsuccessful. Please change your preferences.
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
 
 {% endblock %}
 
 {% block scripts %}
-<script type="text/javascript">
-    // Ready is a function to only run the code after form is submitted
-    $(document).ready(function () {
-        $('#courseForm').on('submit', function (e) { // Listens for a form id courseForm to be submitted
-            e.preventDefault(); // pass the form to ajax
 
-            $.ajax({    // A http method without the need to reload the page
-                url: 'main',
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('#courseForm').on('submit', function (e) {
+            e.preventDefault(); // Prevent the default form submission
+
+            $.ajax({
+                url: '/main', // Make sure the URL is correct
                 type: 'POST',
                 data: $(this).serialize(),
                 success: function (response) {
+                    // Assuming your backend correctly sets the response status
                     if (response.status === 'error') {
-                        showModal(response.message);
-                    }
-                    if (response.status === 'success') {
-                        location.reload();
-
+                        if (response.message === 'Course already added') {
+                            // Specifically handle the 'Course already added' case
+                            $("#courseAlreadyAddedModal").modal('show');
+                        } else {
+                            // Handle other error messages
+                            alert(response.message); // Or use another modal/dialog to show different error messages
+                        }
+                    } else if (response.status === 'success') {
+                        location.reload(); // Or other success behavior
                     }
                 },
-                error: function (error) {
-                    console.log(error);
+                error: function (xhr, status, error) {
+                    // Handle HTTP error scenarios
+                    console.error("Error: ", error);
                 }
             });
         });
     });
-
 </script>
+
 
 <script>
     document.getElementById("timeForm").addEventListener("change", function () {
@@ -245,7 +291,7 @@ Main
     
             // Start the AJAX call to your Flask route
             $.ajax({
-                url: "{{ url_for('automate_timetable') }}",
+                url: "{{ url_for('AutomationController.automate_timetable') }}",
                 type: 'GET',
                 success: function (response) {
                     $("#overlay").fadeOut(300); // Move the overlay fade out to inside the callbacks
@@ -255,6 +301,8 @@ Main
                             $("#noCourseModal").modal('show');
                         } else if (response.message === 'No preference selected') {
                             $("#noPreferenceModal").modal('show');
+                        } else if (response.message === 'Automation unsuccessful') {
+                            $("#automationUnsuccessfulModal").modal('show');
                         }
                     } else {
                         location.reload();

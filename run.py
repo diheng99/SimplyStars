@@ -1,5 +1,5 @@
 from SimplyStars import app
-from SimplyStars.gmailAPI import main, check_credentials
+from SimplyStars.NetworkController import main, check_credentials
 from SimplyStars.AccountController import accounts
 
 if __name__ == '__main__':

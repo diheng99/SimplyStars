@@ -1,6 +1,10 @@
+from flask import Blueprint, jsonify, json
+from flask_login import current_user
 from datetime import timedelta, datetime
-from SimplyStars.models import db, CourseSchedule
+from SimplyStars.models import CourseCode, db, CourseSchedule
 from flask import session
+
+automation = Blueprint('AutomationController', __name__)
 
 class SchedulingStrategy:
     def generate_schedule(self, user_id, preferences):
@@ -190,3 +194,30 @@ class SchedulerContext:
     def generate_schedule(self, user_id, preferences):
         return self.strategy.generate_schedule(user_id, preferences)
     
+@automation.route('/automate_timetable', methods=['GET'])
+def automate_timetable():
+    user_id = current_user.id
+    
+    coursecode = CourseCode.query.filter_by(user=current_user.id).all()
+    if not coursecode:
+        return jsonify({'status': 'error', 'message': 'No Course Added'})
+        
+    preferences = session.get('time_preference')
+    if not preferences:
+        return jsonify({'status': 'error', 'message': 'No preference selected'})
+    
+    if preferences:
+        strategy = AutomatedSchedulingStrategy()
+    else:
+        strategy = DefaultSchedulingStrategy()
+    
+    scheduler = SchedulerContext(strategy)
+    schedule_result = scheduler.generate_schedule(user_id, preferences)
+
+    if not schedule_result[1]:
+        session['timetable_mode'] = 'default'
+        return jsonify({'status': 'error', 'message': 'Automation unsuccessful'})
+    else:
+        session['timetable_mode'] = 'automated'
+        session['weekly_schedules'] = json.dumps(schedule_result[0])
+        return jsonify({'status': 'success', 'message': 'Automation completed successfully'})

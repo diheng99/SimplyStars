@@ -1,52 +1,6 @@
 from bs4 import BeautifulSoup
 from datetime import timedelta, datetime
 from SimplyStars.models import db, CourseSchedule
-import json
-
-def get_coursename_au(html_content):
-    soup = BeautifulSoup(html_content, 'lxml')
-    
-    rows = soup.find_all('tr')
-    course_code = rows[0].find_all('td')[0].text.strip()
-    course_name = rows[0].find_all('td')[1].text.strip()
-    au_value = rows[0].find_all('td')[2].text.strip()
-    
-    return course_code, course_name, au_value
-
-def html_to_json(html_content):
-    soup = BeautifulSoup(html_content, 'lxml')
-    
-    courses = []
-    
-    current_course = None
-    
-    for row in soup.find_all('tr'):
-        columns = row.find_all('td')
-        
-        if columns and columns[0].get_text(strip=True).isdigit():
-            
-            current_course = {
-                'index':columns[0].get_text(strip=True),
-                'details': []
-            }
-            courses.append(current_course)
-        
-        if current_course:
-            details = {
-                'type': columns[1].get_text(strip=True) if len(columns) > 1 else "",
-                'group': columns[2].get_text(strip=True) if len(columns) > 2 else "",
-                'day': columns[3].get_text(strip=True) if len(columns) > 3 else "",
-                'time': columns[4].get_text(strip=True) if len(columns) > 4 else "",
-                'venue': columns[5].get_text(strip=True) if len(columns) > 5 else "",
-                'remark': columns[6].get_text(strip=True) if len(columns) > 6 else "",
-            }
-            if any(details.values()):
-                current_course['details'].append(details)
-    ## JSON DUMPS CONVERTS PYTHON OBJECT TO STRINGS
-    ## USE LOADS TO PARSE STRING BACK TO OBJECT 
-    ## OBJECTS CAN BE REFERENCED 
-    json_data = json.dumps(courses, indent=4)
-    return json_data
 
 def generate_time_slots(start_time, end_time, interval):
     time_slots = []
