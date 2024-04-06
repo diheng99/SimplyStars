@@ -1,10 +1,10 @@
-from flask import Blueprint, jsonify, render_template, redirect, url_for, session, flash
+from flask import Blueprint, jsonify, render_template, redirect, url_for, session, flash, current_app
 from SimplyStars.forms import RegisterForm, forgetPasswordForm, changePasswordForm, OTPForm
 from SimplyStars.models import User, db
 from SimplyStars.NetworkController import generate_otp, send_email
 
 accounts = Blueprint('AccountController', __name__)
-login_attempts = {}
+login_attempts = current_app.config['LOGIN_ATTEMPTS']
 
 class UserFactory:
     @staticmethod
@@ -90,7 +90,8 @@ def change_password():
         user.password = form.password.data
         db.session.commit()
         session.pop('user_data', None)
-        login_attempts[user] = 0
+        username = user.username  
+        login_attempts[username] = 0  
         return redirect(url_for('login_page'))
     
     return render_template('changePassword.html', form=form)

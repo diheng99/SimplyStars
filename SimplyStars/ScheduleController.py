@@ -1,7 +1,7 @@
 from bs4 import BeautifulSoup
 from flask import Blueprint, json, session, jsonify, request, redirect, url_for
 from flask_login import current_user
-from SimplyStars.AutomationController import DefaultSchedulingStrategy, SchedulerContext
+from SimplyStars.AutomationController import DefaultSchedulingStrategy, SchedulerContext, AutomatedSchedulingStrategy
 from SimplyStars.models import db, CourseCode, CourseSchedule
 import traceback
 from SimplyStars import app
@@ -65,15 +65,22 @@ def delete_course(course_code):
     coursecode = CourseCode.query.filter_by(user=current_user.id).all()
     if not coursecode:
         session['timetable_mode'] = 'default'
-        return redirect(url_for('app.main_page'))
+        return redirect(url_for('main_page'))
         
     if session.get('timetable_mode') == 'automated' and coursecode:
+        preferences = session.get('time_preference')
         strategy = DefaultSchedulingStrategy()
         scheduler = SchedulerContext(strategy)
-        schedule_result = scheduler.generate_schedule(current_user.user_id)
+        schedule_result = scheduler.generate_schedule(current_user.id, preferences)
+        session['weekly_schedules'] = json.dumps(schedule_result[0])
+    else:
+        preferences = session.get('time_preference')
+        strategy = AutomatedSchedulingStrategy()
+        scheduler = SchedulerContext(strategy)
+        schedule_result = scheduler.generate_schedule(current_user.id, preferences)
         session['weekly_schedules'] = json.dumps(schedule_result[0])
 
-    return redirect(url_for('app.main_page'))
+    return redirect(url_for('main_page'))
 
 @schedules.route('/delete', methods=['POST'])
 def delete():
@@ -85,7 +92,7 @@ def delete():
             db.session.query(CourseSchedule).delete()
             db.session.commit()
             
-            return redirect(url_for(app.main_page))
+            return redirect(url_for('main_page'))
         except Exception as e:
             db.session.rollback()
     try:

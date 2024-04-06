@@ -6,7 +6,7 @@ import requests
 from SimplyStars import app
 from google_auth_oauthlib.flow import InstalledAppFlow
 from SimplyStars.NetworkController import SCOPES, filePathCred
-from flask import redirect, render_template, request, jsonify, session, json, url_for
+from flask import redirect, render_template, request, jsonify, session, json, url_for, current_app
 from SimplyStars.forms import CourseCodeForm, LoginForm
 from SimplyStars.models import CourseCode, User
 from flask_login import current_user, login_user, logout_user
@@ -22,7 +22,7 @@ app.register_blueprint(schedules, url_prefix='/')
 app.register_blueprint(automation, url_prefix='/')
 app.register_blueprint(preferences, url_prefix='/')
 
-login_attempts = {}
+login_attempts = current_app.config['LOGIN_ATTEMPTS']
 
 @app.route('/')
 @app.route('/home', methods=['GET']) # GET method -> Browser requests for a html file
@@ -59,7 +59,9 @@ def main_page():
         
     if form.validate_on_submit():
         
-        exists_course = CourseCode.query.filter_by(course_code=form.course_code.data, user=current_user.id).first()
+        course_code_upper = form.course_code.data.upper()
+        exists_course = CourseCode.query.filter_by(course_code=course_code_upper, user=current_user.id).first()
+
         if exists_course:
             # Jsonify is used to convert python dict to JSON and the response is sent back
             return jsonify({'status': 'error', 'message': 'Course already added'})
@@ -68,7 +70,7 @@ def main_page():
             
             php_endpoint = "http://127.0.0.1:80/course_schedule.php"
             payload = {
-                'course_code': form.course_code.data,
+                'course_code': course_code_upper,
                 'user_id' : current_user.id
             }
         
@@ -85,7 +87,7 @@ def main_page():
                 print("Failed to make a request to the PHP script. Status Code:", response.status_code)
         
             return jsonify({'status': 'success'})
-        
+    
     schedule = generate_time_slots('8:30 AM', '10:30 PM', 50) 
     user_courses = CourseCode.query.filter_by(user=current_user.id).all()
     return render_template('main.html', form=form, user_courses=user_courses, schedule=schedule, weekly_schedules=weekly_schedules)

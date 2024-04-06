@@ -87,25 +87,29 @@ def clash_free(current_index, weekly_schedule, user_id, course_code):
     even = "Teaching Wk2,4,6,8,10,12"
      
     for details in index_details:
-         day = details.day
-         time = details.time
+        day = details.day
+        time = details.time
 
-         if details.venue == "online":
-             continue
-         if day in weekly_schedule and time in weekly_schedule[day]:
-             
-             scheduled_class = weekly_schedule[day][time]
-             for classes in scheduled_class:
-                 if classes['remarks'] != odd and classes['remarks'] != even:
-                     return False
-                 
-                 if classes['remarks'] == odd and details.remarks == odd:
-                     return False
-                 
-                 if classes['remarks'] == even and details.remarks == even:
-                     return False
+        if details.venue == "online":
+            continue
+        if day in weekly_schedule and time in weekly_schedule[day]:
+            scheduled_class = weekly_schedule[day][time]
+            for classes in scheduled_class:
+                # Make sure the indentation is consistent here
+                if classes['remarks'] != '':
+                    return False
+                
+                if classes['remarks'] != odd and classes['remarks'] != even:
+                    return False
+                
+                if classes['remarks'] == odd and details.remarks == odd:
+                    return False
+                
+                if classes['remarks'] == even and details.remarks == even:
+                    return False
                       
-    return True   
+    return True 
+ 
 
 def format_time(time_obj):
     return time_obj.strftime('%H%M')
@@ -127,6 +131,7 @@ def populate_schedule(current_index, weekly_schedule, user_id, course_code):
             
             class_details = {
                 'type': details.type,
+                'course': details.course_code, # New Variable to track course code
                 'index': details.course_index,
                 'group': details.group,
                 'venue': details.venue,

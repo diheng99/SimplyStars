@@ -1,274 +1,86 @@
-/* Style for form labels */
-.form-group label {
-    color: #333; /* Choose a color that fits your design */
-    font-weight: bold; /* Bold font for the labels */
-    font-size: 16px; /* Choose an appropriate font size */
-    margin-bottom: 0.5rem; /* Spacing below the label for separation */
-    display: block; /* Display block for full width */
+:root {
+    --primary-color: #0a2940;          /* Darker Primary Color */
+    --secondary-color: #0f3854;        /* Lighter Secondary Color */
+    --background-color: #171e29;       /* Background Color */
+    --topbar-color: #010409;           /* Top Nav Bar Backgroudnd Color */
+    --topbar-button-color: #161B22;    /* Top Nav Bar Button Colors */
+    --text-color: #ebeced;             /* Text Color for entire page (Muted/Softer White) */
+    --timetable-hover-row: #051f33;    /* Color when hovering over timetable row */
+    --timetable-hover-focus: #011321;  /* Color when hovering over timetable row + column = Current Cell */
 }
 
-/* Style improvements for input fields */
-.form-control {
-    border: 1px solid #ced4da; /* Subtle border color */
-    border-radius: 0.25rem; /* Slightly rounded borders for modern look */
-    font-size: 16px; /* Uniform font size with label */
-    line-height: 1.5; /* Comfortable line height for readability */
-    padding: 0.375rem 0.75rem; /* Balanced padding */
-}
-
-/* Optional: Style for focus on input fields */
-.form-control:focus {
-    border-color: #80bdff; /* Border color on focus */
-    outline: 0; /* Remove default focus outline */
-    box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25); /* Add a subtle glow effect */
-}
-
-/* Style for the login button */
-.btn.btn-secondary {
-    font-size: 16px; /* Match font size with form controls */
-    font-weight: 400; /* Normal font weight for button */
-    color: #fff; /* Text color */
-    background-color: #6c757d; /* Background color */
-    border-color: #6c757d; /* Border color */
-    padding: 0.375rem 0.75rem; /* Padding similar to input fields */
-    border-radius: 0.25rem; /* Rounded corners */
-    transition: background-color 0.15s ease-in-out; /* Smooth transition for hover effect */
-}
-
-/* Hover effect for button */
-.btn.btn-secondary:hover {
-    background-color: #5a6268; /* Slightly darker on hover */
-    border-color: #545b62;
+.error-message {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: red;
+    color: white;
+    padding: 10px;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+    z-index: 9999; /* Ensure it appears above other elements */
 }
 
 .top-bar {
-    background-color: #7C7C7C; 
-    height: 80px; 
-    width: calc(100% - 20px); 
-    margin: 0 auto; 
-    margin-top: 10px;
-    border-radius: 10px;
+    background-color: var(--topbar-color);
+    height: 50px; 
+    width: 100%;  
     display: flex;
     justify-content: center;
     align-items: center;
+    border: #30363d;
+    border-bottom: 2px solid #30363db3;
+    box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
 }
 
-.welcome-bar{
-    background-color: black; 
-    height: 60px; 
-    width: 600px; 
-    border-radius: 10px;
-    color: white;
-    text-align: center;
+.welcome-bar {
+    color: var(--text-color);
+    height: 40px; 
+    width:100%;
     margin: 0 auto;
-    font-size: 30px;
-    padding: 20px;
     display: flex;
-    align-items: center;
+    border-radius: 10px;
     justify-content: center;
-}
-
-.help-button {
-    background-color: black;
-    color: white;
-    border: none;
-    font-size: 30px;    
-    padding: 10px 20px;
-    border-radius: 10px;
-    cursor: pointer;
-    height: 60px; 
-    margin-right: 100px;
-}
-
-.logout-button {
-    background-color: black;
-    color: white;
-    border: none;
-    font-size: 30px;    
-    padding: 10px 20px;
-    border-radius: 10px;
-    cursor: pointer;
-    height: 60px; 
-    margin-right: 20px;
-}
-
-.filters{
-    color: white;
-    align-items: center;    
-}
-
-#automateBtn{
-    display: inline-block; 
-    font-size:30px; 
-    border-radius: 10px;
-    color: white;
-    background-color: black;
-}
-
-.content-container {
-    display: flex;
-    align-items: flex-start;
-}
-
-.courses-container {
-    width: 100%; 
-    margin-right: 5%;
-    padding-right: 4%;
-}
-
-.timetable-container {
-    width: 95%; 
-    max-width: 1250px; 
-    padding-left: 4%;
     align-items: center;
     text-align: center;
-}
-
-#timetable {
-    border-collapse: separate;
-    text-indent: initial;
-    line-height: normal;
-    font-weight: normal;
-    font-size: medium;
-    font-style: normal;
-    color: white;
-    text-align: start;
-    border-spacing: 1px;
-    white-space: normal;
-    font-variant: normal;
-    font: 1em/1.55 Lato, Arial, sans-serif;
-}
-
-#timetable, #timetable th, #timetable td {
-    border: 1px solid #ddd;
-}
-
-#timetable th, #timetable td {
-    font-size: 10px;
-    color: black;
-}
-
-#timetable thead {
-    background-color: #f2f2f2;
-}
-
-#timetable tr:nth-child(even) {
-    background-color: #CAE2EA; /*#432f2f;*/
-}
-
-#timetable tr:nth-child(odd) {
-    background-color: #EBFAFF
-}
-
-#timetable tr:hover {
-    background-color: #e8e8e8;
-}
-
-#timetable .class {
-    background-color: #d1e7dd;
-    color: #0f5132;
-}
-
-#timetable th {
-    text-align: center;
-    background-color: #BCBCC8; /*#4f6d87;*/
-    color: rgb(19, 16, 16);
-    font-size: 10px;
-}
-
-#overlay {
-    position: fixed; /* Sit on top of the page content */
-    display: none; /* Hidden by default */
-    width: 100%; /* Full width */
-    height: 100%; /* Full height */
-    top: 0; 
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0,0,0,0.5); /* Black background with opacity */
-    z-index: 2; /* Specify a stack order in case you're using a z-index elsewhere */
-    cursor: pointer; /* Add a pointer on hover */
-}
-
-#text {
+    font-size: 30px;
     position: absolute;
-    top: 50%;
-    left: 50%;
-    font-size: 20px;
-    color: white;
-    transform: translate(-50%,-50%);
-    -ms-transform: translate(-50%,-50%);
 }
-/* Everything below is for tooltip styling */
-.tooltip {
-    position: relative;
-    display: inline-block;
-    opacity: 1;
-    border-bottom: 1px dotted black;
-  }
-  
-  .tooltip .tooltiptext {
-    visibility: hidden;
-    width: 120px;
-    background-color: black;
-    color: white;
-    text-align: center;
+
+.help-button {  
+    background-color: var(--topbar-button-color);
+    color: var(--text-color);
+    height: 40px; 
+    right: 140px;
+    display: flex;
     border-radius: 10px;
-    padding: 5px 0;
-    
-    /* Position the tooltip */
-    position: absolute;
-    z-index: 1;
-    top: -195px;
-    left: 55px;
-  }
-  
-  .tooltip:hover .tooltiptext {
-    visibility: visible;
-  }
-
-  .course-li {
-    background-color: #C1C1C1; 
-    text-align: left; 
-    padding:10px; 
-    word-wrap: break-word; 
-    width:230px; 
-    list-style-type: none; 
-    border-radius: 10px; 
-    margin-bottom: 5px;
-  }
-
-  .courselist {
-    position: relative;
-}
-
-  .removebutton {
-    background-color: transparent;
-    border: none;
-    position: absolute;
-    top: -12px;
-    right: -12px;
-  }
-
-  .removebutton svg {
-    width: 100%;
-    height: 100%;
-}
-
-  .bi.bi-x-circle:hover path {
-    fill: red; /* Change the X color to red on hover */
-}
-  
-.logout-button {
-    padding: 10px 15px;
-    background-color: #f44336; /* A red color to signify a logout action */
-    color: white;
-    font-size: 16px;
-    border: none;
-    border-radius: 5px;
+    font-size: 20px;    
     cursor: pointer;
-    transition: background-color 0.3s, box-shadow 0.3s;
-    outline: none; /* Removes the outline to make it look neater */
+    position: absolute;
+    margin-right: 5px;
+    padding: 20px;
+    align-items: center;
+    vertical-align: middle;
+    box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.logout-button {
+    background-color: var(--topbar-button-color);
+    color: var(--text-color);
+    height: 40px; 
+    right: 10px;
+    margin-right: 20px;
+    padding: 20px;
+    font-size: 20px;    
+    border-radius: 10px;
+    display: flex;  
+    cursor: pointer;
+    align-items: center;
+    vertical-align: middle;
+    position: absolute;
+    border: none;
+    box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .logout-button:hover,
@@ -281,3 +93,196 @@
     background-color: #b71c1c; /* Even darker color when the button is clicked */
     box-shadow: 0 1px 2px 0 rgba(0,0,0,0.24); /* Smaller shadow to give a pressed effect */
 }
+
+.content-container {
+    margin-top: 10px;
+    background-color: var(--background-color);
+    display: flex;
+    align-items: flex-start;
+    padding-left: 20px; 
+}
+
+.course_container {
+    padding: 10px; 
+    background-color: var(--primary-color); 
+    border-radius: 10px;
+    box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.4);
+}
+
+#clear-button {
+    height: 35px;
+    border-radius: 10px; 
+    background-color: #30363d; 
+    font-size:15px;
+    color:var(--text-color);
+    padding-left:10px; 
+    padding-right:10px;
+    font-weight: var(--base-text-weight-semibold, 600);;
+    padding:5px;
+    box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+    float: right;
+}
+
+.course-li {
+    background-color: var(--secondary-color);
+    color: var(--text-color);
+    text-align: center; 
+    padding: 10px; 
+    width: 230px; 
+    word-wrap: break-word; 
+    font-weight: bold;
+    list-style-type: none; 
+    border-radius: 10px; 
+    margin-bottom: 5px;
+    box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.courselist {
+    position: relative;
+}
+
+.removebutton {
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    position: absolute;
+    top: -12px;
+    right: -12px;
+}
+
+.removebutton svg {
+    width: 100%;
+    height: 100%;
+}
+
+.bi.bi-x-circle:hover path {
+    fill: red; /* Change the X color to red on hover */
+}
+
+
+.filters {
+    color: var(--text-color);
+    align-items: center;    
+}
+
+#automateBtn{
+    color: var(--text-color);
+    background-color: #048817;
+    float: right; 
+    font-size:25px; 
+    font-weight: var(--base-text-weight-semibold, 600);
+    border-radius: 10px;
+    padding: 5px;
+    padding-left: 15px;
+    padding-right: 15px;
+    box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.4);
+}
+
+.timetable-container {
+    width: 98%; 
+    max-width: 1250px; 
+    padding-left: 2%;
+    padding-right:2%;
+    align-items: center;
+    text-align: center;
+}
+
+#timetable {
+    color: var(--text-color);
+    top:-18px; /* Remove awkward spacing above */
+    position:relative;
+    border-collapse: separate;
+    text-indent: initial;
+    line-height: normal;
+    font-weight: normal;
+    font-size: medium;
+    font-style: normal;
+    text-align: center;
+    border-spacing: 1px;
+    white-space: normal;
+    font-variant: normal;
+    font: 1em/1.55 Lato, Arial, sans-serif;
+}
+
+#timetable, #timetable th, #timetable td {
+    border: 1px solid black;
+}
+
+#timetable th, #timetable td {
+    font-size: 10px;
+}
+
+#timetable tr:nth-child(even) {
+    background-color: var(--primary-color);
+}
+
+#timetable tr:nth-child(odd) {
+    background-color: var(--secondary-color);
+}
+
+#timetable tr:hover td:hover {
+    background-color: var(--timetable-hover-focus);
+}
+
+#timetable tr:hover {
+    background-color: var(--timetable-hover-row); 
+}
+
+#timetable th {
+    text-align: center;
+    background-color: var(--primary-color); 
+    color: var(--text-color);
+    font-size: 10px;
+}
+
+#overlay {
+    position: fixed; /* Sit on top of the page content */
+    display: none;   /* Hidden by default */
+    width: 100%;     /* Full width */
+    height: 100%;    /* Full height */
+    top: 0; 
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0,0,0,0.5); /* Black background with opacity */
+    z-index: 2; /* Specify a stack order in case you're using a z-index elsewhere */
+    cursor: pointer; /* Add a pointer on hover */
+}
+
+#text {
+    color: var(--text-color);
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    font-size: 20px;
+    transform: translate(-50%,-50%);
+    -ms-transform: translate(-50%,-50%);
+}
+
+/* Everything below is for tooltip styling */
+.tooltip {
+    position: relative;
+    display: inline-block;
+    cursor: pointer;
+    opacity: 1;
+    border-bottom: 1px dotted var(--text-color);
+}
+  
+.tooltip .tooltiptext {
+    visibility: hidden;
+    width: 160px;
+    background-color: black;
+    color: var(--text-color);
+    text-align: center;
+    
+    border-radius: 10px;
+    padding: 10px;
+    position: absolute;
+    top: -50px;
+    right: 40px;
+}
+  
+.tooltip:hover .tooltiptext {
+    visibility: visible;
+}
+  

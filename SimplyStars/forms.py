@@ -33,7 +33,7 @@ class RegisterForm(FlaskForm):
     def validate_email_address(self, email_address):
         user = User.query.filter_by(email_address=email_address.data).first()
         if user:
-            raise ValidationError('Email Address already exists! Please Login')
+            raise ValidationError('Email Address already exists! Please Login!.')
         
     def validate_username(self, username):
         user = User.query.filter_by(username=username.data).first()
@@ -51,12 +51,12 @@ class RegisterForm(FlaskForm):
     
 class CourseCodeForm(FlaskForm):
       
-    course_code = StringField(label="Enter Course Code", validators=[DataRequired()])
+    course_code = StringField(label="Enter Course Code:", validators=[DataRequired()], render_kw={"placeholder": "Enter Course Code"})
     add = SubmitField("Add")
     
 class forgetPasswordForm(FlaskForm):
 
-    email_address = StringField(label='Email Address', validators=[DataRequired()])
+    email_address = StringField(label='Email Address', validators=[DataRequired()], render_kw={"placeholder": "Email"})
     submit = SubmitField(label = "Reset Email")
     
 class OTPForm(FlaskForm):
