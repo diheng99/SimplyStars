@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{%block title %}
+{% block title %}
     Welcome to SimplyStars 
 {% endblock %}
 
@@ -14,9 +14,12 @@
                 <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS5mUetvRA2CD6WiMGKRxh6bIXHCfdcuVfOgw&usqp=CAU" alt="Welcome Image" class="img-fluid mb-3">
             </div>
         </div>
-        <!-- 12 column layout -->
-        <div class="col-md-12">
-            <!-- browser sends a get request to the url -->
-            <a href="{{ url_for('login_page') }}" class="btn btn-primary login-button">Login to Customize</a>
+        <!-- Flex container for centering the button -->
+        <div class="d-flex justify-content-center">
+            <!-- Adjusted column layout for alignment, removed col-md-6 for full width and better centering -->
+            <div>
+                <!-- Added btn-sm for a smaller button and additional classes for centering -->
+                <a href="{{ url_for('login_page') }}" class="btn btn-primary btn-sm">Login to Customize</a>
+            </div>
         </div>
 {% endblock %}

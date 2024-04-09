@@ -79,8 +79,18 @@
     align-items: center;
     vertical-align: middle;
     position: absolute;
-    border: none;
     box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.help-button:hover,
+.help-button:focus {
+    background-color: #37911f; /* Darken color on hover */
+    box-shadow: 0 2px 4px 0 rgba(0,0,0,0.24); /* Add a shadow to lift the button off the page */
+}
+
+.help-button:active {
+    background-color: #276616; /* Even darker color when the button is clicked */
+    box-shadow: 0 1px 2px 0 rgba(0,0,0,0.24); /* Smaller shadow to give a pressed effect */
 }
 
 .logout-button:hover,
