@@ -2,6 +2,7 @@ from flask import Blueprint, jsonify, render_template, redirect, url_for, sessio
 from SimplyStars.forms import RegisterForm, forgetPasswordForm, changePasswordForm, OTPForm
 from SimplyStars.models import User, db
 from SimplyStars.NetworkController import generate_otp, send_email
+from SimplyStars import app
 
 accounts = Blueprint('AccountController', __name__)
 login_attempts = current_app.config['LOGIN_ATTEMPTS']
@@ -43,11 +44,9 @@ def otp_verification():
 
     if form.validate_on_submit():
         user_otp = form.otp.data
-
         # Check if the OTP matches
         if 'temp_user_data' in session and session['temp_user_data'].get('otp') == user_otp:
-            # OTP is correct, proceed with user registration or next steps
-            # You may want to remove the OTP from the session after successful verification
+
             session_temp_data = session.pop('temp_user_data')
             
             new_user = UserFactory.create_user(session_temp_data)
@@ -55,11 +54,10 @@ def otp_verification():
             db.session.add(new_user)
             db.session.commit()
             
-            return redirect(url_for('login_page'))
-        
+            return jsonify({'success': True, 'redirect_url': url_for('login_page')})
         else:
             # OTP is incorrect, show an error message
-            flash('Invalid OTP. Please try again.', 'error')
+            return jsonify({'success': False, 'error': 'Invalid OTP. Please try again.'}), 400
 
     return render_template('otp_verification.html', form=form)
 

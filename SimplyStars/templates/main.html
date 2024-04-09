@@ -28,7 +28,7 @@ Main
         <img src="https://t.ly/Q54qQ" style="width:40px; margin-right:20px;">
         Welcome to SimplyStars!
     </div>
-    <div class="help-button">Help</div>
+    <button id="help-button" class="help-button" onclick="help()">Help</button>
     <button id="logout-button" class="logout-button" onclick="logoutUser()">Logout</button>
 </div>
 
@@ -258,6 +258,45 @@ Main
     </div>
   </div>
 
+  <!-- Help Modal -->
+<div class="modal fade" id="helpModal" tabindex="-1" role="dialog" aria-labelledby="helpModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document" style="max-width: 800px;">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="helpModalLabel">Help</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body" style="text-align: left; font-size: 14px;">
+            <!-- Enter Help Information here-->
+            <b>Navigation:</b>
+            <br>1. Type a valid course code in the search bar and click on the search icon to Add course.
+            <br>2. Courses added will show up in the schedule and the schedule displayed can be referenced for those with no time preferences
+            <br>3. For those with time preference, click on morning or afternoon button to indicate preference before clicking on the “Generate Schedule” button
+            <br>4. Hover over each course in schedule to get more details such as Course name, Course code, lesson type, Index, Venue, Teaching Week, etc.
+            <br>5. Remove course can be done individually through the cross button or “Clear all” button
+            <br><br>
+            <b>FAQs</b>:
+            <br><b>Q:</b> I have keyed in a valid course as seen in NTU Stars but it is not showing up on SimplyStars.
+            <br><b>A:</b> The course you keyed in could be a new course or not available in the current semester. Please double confirm using NTU official platforms. Thank you for your patience.
+            <br>
+            <br><b>Q:</b> The page is not responsive (>250ms to display added course or >15 secs to generate schedule)
+            <br><b>A:</b> Please refresh the page or login again. Should such an incident persist, email maintenance@e.simplystars.edu.sg for more assistance.
+            <br>
+            <br><b>Q:</b> There is incorrect information on the site. 
+            <br><b>A:</b> Please double confirm with NTU official platforms and email maintenance@e.simplystars.edu.sg for error reporting after confirmation.
+            <br>
+            <br><b>Q:</b> Is my personal data safe on this site?
+            <br><b>A:</b> Your data is securely and encryped to prevent data breach along with compliance with data protection regulation such as PDPA and GDPR.
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
 
 {% endblock %}
 
@@ -355,6 +394,12 @@ Main
     });
     
 </script>
+
+<script>
+    function help() {
+        $("#helpModal").modal('show');
+    }
+    </script>
 
 <script>
     function logoutUser() {

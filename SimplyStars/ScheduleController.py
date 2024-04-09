@@ -69,13 +69,13 @@ def delete_course(course_code):
         
     if session.get('timetable_mode') == 'automated' and coursecode:
         preferences = session.get('time_preference')
-        strategy = DefaultSchedulingStrategy()
+        strategy = AutomatedSchedulingStrategy()
         scheduler = SchedulerContext(strategy)
         schedule_result = scheduler.generate_schedule(current_user.id, preferences)
         session['weekly_schedules'] = json.dumps(schedule_result[0])
     else:
         preferences = session.get('time_preference')
-        strategy = AutomatedSchedulingStrategy()
+        strategy = DefaultSchedulingStrategy()
         scheduler = SchedulerContext(strategy)
         schedule_result = scheduler.generate_schedule(current_user.id, preferences)
         session['weekly_schedules'] = json.dumps(schedule_result[0])

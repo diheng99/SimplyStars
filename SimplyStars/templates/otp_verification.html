@@ -32,6 +32,7 @@ Verify OTP
 <body>
     <div class="otp-verification-container">
         <h2>Enter your 6-digit OTP now:</h2>
+        <div id="otpError" class="alert alert-danger" style="display: none;"></div>
         <form method="POST" action="{{ url_for('AccountController.otp_verification') }}">
             {{ form.hidden_tag() }}
             
@@ -89,5 +90,99 @@ Verify OTP
             document.getElementById('hidden-otp').value = otp;
         }
     </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const form = document.querySelector('form');
+            const otpErrorDiv = document.getElementById('otpError'); // Get the error message div
+
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+
+                // Clear any previous error messages
+                otpErrorDiv.textContent = '';
+                otpErrorDiv.style.display = 'none';
+
+                // Assuming you have the concatenateOTP function defined as before
+                concatenateOTP();
+
+                // Send AJAX POST request to the server
+                fetch('/otp_verification', {
+                    method: 'POST',
+                    body: new FormData(form),
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw response;
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data.success) {
+                            // Redirect if OTP verification was successful
+                            window.location.href = data.redirect_url;
+                        }
+                    })
+                    .catch((error) => {
+                        error.json().then(err => {
+                            // Display error message if OTP is invalid
+                            otpErrorDiv.textContent = err.error; // Set the error text
+                            otpErrorDiv.style.display = 'block'; // Make the error div visible
+                        });
+                    });
+            });
+        });
+
+    </script>
 </body>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    $(document).ready(function () {
+        // Listen for the form submission
+        $("#otpForm").submit(function (event) {
+            // Prevent the default form submission
+            event.preventDefault();
+    
+            // Concatenate OTP from individual inputs into a single value
+            // Assuming you have a function defined for this named concatenateOTP which updates a hidden field
+            concatenateOTP();
+    
+            // Start the AJAX call to the Flask OTP verification route
+            $.ajax({
+                type: 'POST',
+                url: "{{ url_for('AccountController.otp_verification') }}",
+                data: $(this).serialize(), // Serialize the form data
+                dataType: 'json', // Expect a JSON response
+                beforeSend: function (xhr) {
+                    xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+                },
+                success: function (response) {
+                    if (response.success) {
+                        // Redirect on success
+                        window.location.href = response.redirect_url;
+                    } else {
+                        // OTP verification failed, show the error message
+                        $('#otpError').text(response.error).show();
+                    }
+                },
+                error: function (xhr, status, error) {
+                    // Handle any other errors
+                    if (xhr.responseJSON && xhr.responseJSON.error) {
+                        // If the server responded with a specific error message, display it
+                        $('#otpError').text(xhr.responseJSON.error).show();
+                    } else {
+                        // Generic error message for other errors
+                        $('#otpError').text("An error occurred while attempting to verify the OTP.").show();
+                    }
+                }
+            });
+        });
+    });
+    </script>
+    
 {% endblock %}
