@@ -85,6 +85,11 @@ def delete_course(course_code):
 @schedules.route('/delete', methods=['POST'])
 def delete():
     
+    course = CourseCode.query.filter_by(user=current_user.id).first()
+    if not course:
+        return redirect(url_for('main_page'))
+
+    
     if session['timetable_mode'] == 'automated':
         try:
             session['timetable_mode'] = 'default'
