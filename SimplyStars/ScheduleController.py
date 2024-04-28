@@ -153,3 +153,5 @@ def html_to_json(html_content):
     ## OBJECTS CAN BE REFERENCED 
     json_data = json.dumps(courses, indent=4)
     return json_data
+
+
